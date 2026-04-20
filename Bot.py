@@ -37,16 +37,15 @@ ADMIN_ID = 6883208728
 user_data = {}
 
 # =========================
-# 🎮 MENU (UPDATED)
+# 🎮 MENU
 # =========================
 def show_menu(chat_id):
 
     markup = InlineKeyboardMarkup()
 
-    # 🔥 IMPORTANT 👉 PUT YOUR LINK HERE
     web_btn = InlineKeyboardButton(
         "🎮 Play Game",
-        web_app=WebAppInfo("PUT_YOUR_LINK_HERE")
+        web_app=WebAppInfo("https://bingo-game-4.onrender.com")
     )
 
     pay_btn = InlineKeyboardButton("💳 Deposit", callback_data="deposit")
@@ -76,7 +75,8 @@ def deposit_menu(call):
         types.InlineKeyboardButton("50 ብር", callback_data="pay_50"),
         types.InlineKeyboardButton("100 ብር", callback_data="pay_100"),
         types.InlineKeyboardButton("200 ብር", callback_data="pay_200"),
-        types.InlineKeyboardButton("500 ብር", callback_data="pay_500")
+        types.InlineKeyboardButton("500 ብር", callback_data="pay_500"),
+        types.InlineKeyboardButton("1000 ብር", callback_data="pay_1000")
     )
 
     bot.send_message(call.message.chat.id, "💳 ብር ምረጥ 👇", reply_markup=markup)
