@@ -76,7 +76,6 @@ def package(call):
 
     amount = call.data.split("_")[1]
 
-    # save user choice
     user_data[call.from_user.id] = {"amount": amount}
 
     bot.send_message(
@@ -89,29 +88,25 @@ def package(call):
     )
 
 # =========================
-# 📸 PHOTO (IMPORTANT)
+# 📸 PHOTO (WORKING)
 # =========================
 @bot.message_handler(content_types=['photo'])
 def photo(message):
 
     user = user_data.get(message.from_user.id)
 
-    # ❌ no package
     if not user or "amount" not in user:
         bot.send_message(
             message.chat.id,
-            "❗ ብር ሳይመርጡ ክፍያ ላኩ!\n\n"
-            "📞 0952346729"
+            "❗ ብር ሳይመርጡ ክፍያ ላኩ!\n\n📞 0952346729"
         )
         return
 
     amount = user["amount"]
 
-    # get file
     file_info = bot.get_file(message.photo[-1].file_id)
     file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
 
-    # save to firebase
     db.reference("payments").push({
         "user": message.from_user.username,
         "amount": amount,
@@ -119,26 +114,24 @@ def photo(message):
         "status": "pending"
     })
 
-    # send to admin
     bot.send_photo(
         ADMIN_ID,
         file_url,
         caption=f"👤 @{message.from_user.username}\n💰 {amount} ብር"
     )
 
-    # ✅ WAIT MESSAGE (FIXED)
     bot.send_message(
         message.chat.id,
-        "⏳ ክፍያዎ በማረጋገጥ ላይ ነው...\n\n"
-        "⌛ 5 ደቂቃ ይጠብቁ 🙏"
+        "⏳ ክፍያዎ በማረጋገጥ ላይ ነው...\n\n⌛ 5 ደቂቃ ይጠብቁ 🙏"
     )
 
 # =========================
-# 🔁 ANY TEXT (LAST!)
+# 🔁 TEXT ONLY (FIXED)
 # =========================
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(content_types=['text'])
 def all_text(message):
-    show_menu(message.chat.id)
+    if message.text != "/start":
+        show_menu(message.chat.id)
 
 # =========================
 # 🚀 RUN
