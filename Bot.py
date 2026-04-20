@@ -103,6 +103,7 @@ def photo(message):
 
         amount = user["amount"]
 
+        # 👉 GET FILE ID
         if message.content_type == 'photo':
             file_id = message.photo[-1].file_id
         else:
@@ -111,6 +112,7 @@ def photo(message):
         file_info = bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
 
+        # 👉 Save to Firebase
         db.reference("payments").push({
             "user": message.from_user.username,
             "amount": amount,
@@ -118,12 +120,14 @@ def photo(message):
             "status": "pending"
         })
 
+        # 👉 SEND TO ADMIN (FIXED ✅)
         bot.send_photo(
             ADMIN_ID,
-            file_url,
+            file_id,
             caption=f"<b>👤 @{message.from_user.username}</b>\n💰 {amount} ብር"
         )
 
+        # 👉 USER MESSAGE
         bot.send_message(
             message.chat.id,
             "<b>⏳ ክፍያዎ በማረጋገጥ ላይ ነው...</b>\n\n"
@@ -134,7 +138,7 @@ def photo(message):
         bot.send_message(message.chat.id, f"❌ Error: {str(e)}")
 
 # =========================
-# 🔁 TEXT ONLY
+# 🔁 ANY TEXT
 # =========================
 @bot.message_handler(content_types=['text'])
 def all_text(message):
