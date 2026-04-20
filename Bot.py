@@ -5,9 +5,31 @@ from firebase_admin import credentials, db
 import os, json
 
 # =========================
+# 🔥 FIX (Render Web Service)
+# =========================
+from flask import Flask
+from threading import Thread
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is running"
+
+def run():
+    app.run(host='0.0.0.0', port=10000)
+
+Thread(target=run).start()
+
+# =========================
 # 🔐 Firebase
 # =========================
-cred = credentials.Certificate(json.loads(os.environ.get("FIREBASE_KEY")))
+firebase_key = os.environ.get("FIREBASE_KEY")
+
+if not firebase_key:
+    raise Exception("FIREBASE_KEY not found")
+
+cred = credentials.Certificate(json.loads(firebase_key))
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://house-rent-app-3674a-default-rtdb.firebaseio.com/'
 })
@@ -15,9 +37,14 @@ firebase_admin.initialize_app(cred, {
 # =========================
 # 🤖 BOT
 # =========================
-bot = telebot.TeleBot(os.environ.get("BOT_TOKEN"), parse_mode="HTML")
-ADMIN_ID = 6883208728
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
+if not BOT_TOKEN:
+    raise Exception("BOT_TOKEN not found")
+
+bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
+
+ADMIN_ID = 6883208728
 user_data = {}
 
 # =========================
@@ -32,7 +59,6 @@ def menu(chat_id):
         types.InlineKeyboardButton("300 ብር", callback_data="pay_300"),
         types.InlineKeyboardButton("500 ብር", callback_data="pay_500"),
         types.InlineKeyboardButton("1000 ብር", callback_data="pay_1000"),
-        types.InlineKeyboardButton("2000 ብር", callback_data="pay_2000"),
     )
     m.add(
         types.InlineKeyboardButton("💳 ባላንስ", callback_data="bal"),
@@ -49,6 +75,13 @@ def start(m):
     menu(m.chat.id)
 
 # =========================
+# 🔁 ANY TEXT
+# =========================
+@bot.message_handler(func=lambda m: True, content_types=['text'])
+def all_text(m):
+    menu(m.chat.id)
+
+# =========================
 # 💳 BALANCE
 # =========================
 @bot.callback_query_handler(func=lambda c: c.data=="bal")
@@ -57,12 +90,12 @@ def balance(c):
     bot.send_message(c.message.chat.id, f"💰 {data.get('balance',0)} ብር")
 
 # =========================
-# 💰 PAY SELECT
+# 💰 PACKAGE
 # =========================
 @bot.callback_query_handler(func=lambda c: c.data.startswith("pay_"))
 def pay(c):
     amt = c.data.split("_")[1]
-    user_data[c.from_user.id] = {"mode":"deposit", "amount":amt}
+    user_data[c.from_user.id] = {"mode":"deposit","amount":amt}
 
     bot.send_message(c.message.chat.id,
         f"<b>✅ {amt} ብር መርጠዋል</b>\n\n"
@@ -76,14 +109,13 @@ def pay(c):
 # =========================
 @bot.message_handler(content_types=['photo'])
 def photo(m):
+    user = user_data.get(m.from_user.id)
 
-    u = user_data.get(m.from_user.id)
-
-    if not u or u.get("mode") != "deposit":
-        bot.send_message(m.chat.id,"❗ ብር አልመረጡም")
+    if not user or user.get("mode") != "deposit":
+        bot.send_message(m.chat.id, "❗ ብር አልመረጡም")
         return
 
-    amt = u["amount"]
+    amt = user["amount"]
     file_id = m.photo[-1].file_id
 
     ref = db.reference("payments").push({
@@ -102,12 +134,9 @@ def photo(m):
 
     bot.send_photo(ADMIN_ID, file_id, caption=f"{amt} ብር", reply_markup=mk)
 
-    bot.send_message(
-        m.chat.id,
-        "⏳ ክፍያዎ በማረጋገጥ ላይ ነው\n⌛ 5 ደቂቃ ይጠብቁ"
-    )
+    bot.send_message(m.chat.id,
+        "⏳ ክፍያዎ በማረጋገጥ ላይ ነው\n⌛ 5 ደቂቃ ይጠብቁ")
 
-    # clear state
     user_data.pop(m.from_user.id, None)
 
 # =========================
@@ -139,22 +168,19 @@ def reject(c):
     bot.send_message(data["user_id"], "❌ አልተቀበለም")
 
 # =========================
-# 💸 WITHDRAW START
+# 💸 WITHDRAW
 # =========================
 @bot.callback_query_handler(func=lambda c: c.data=="withdraw")
 def withdraw(c):
     user_data[c.from_user.id] = {"mode":"withdraw","step":"amount"}
-    bot.send_message(c.message.chat.id,"💸 ምን ያህል ብር?")
+    bot.send_message(c.message.chat.id, "💸 ምን ያህል ብር?")
 
-# =========================
-# 💸 AMOUNT
-# =========================
-@bot.message_handler(func=lambda m: user_data.get(m.from_user.id,{}).get("mode")=="withdraw" and user_data[m.from_user.id].get("step")=="amount")
+@bot.message_handler(func=lambda m: user_data.get(m.from_user.id,{}).get("step")=="amount")
 def w_amount(m):
     try:
         amt = int(m.text)
     except:
-        bot.send_message(m.chat.id,"❗ ቁጥር ብቻ ላክ")
+        bot.send_message(m.chat.id,"❗ ቁጥር ብቻ")
         return
 
     user_data[m.from_user.id]["amount"] = amt
@@ -162,10 +188,7 @@ def w_amount(m):
 
     bot.send_message(m.chat.id,"📱 ስልክ ቁጥር ላክ")
 
-# =========================
-# 💸 PHONE
-# =========================
-@bot.message_handler(func=lambda m: user_data.get(m.from_user.id,{}).get("mode")=="withdraw" and user_data[m.from_user.id].get("step")=="phone")
+@bot.message_handler(func=lambda m: user_data.get(m.from_user.id,{}).get("step")=="phone")
 def w_phone(m):
 
     data = user_data[m.from_user.id]
@@ -176,60 +199,23 @@ def w_phone(m):
 
     if amt > bal:
         bot.send_message(m.chat.id,"❌ ባላንስ አነስተኛ ነው")
-        user_data.pop(m.from_user.id, None)
+        user_data.pop(m.from_user.id,None)
         return
 
-    wref = db.reference("withdraws").push({
+    db.reference("withdraws").push({
         "user_id": m.from_user.id,
         "amount": amt,
         "phone": m.text,
         "status": "pending"
     })
 
-    wid = wref.key
-
-    mk = types.InlineKeyboardMarkup()
-    mk.add(
-        types.InlineKeyboardButton("✅ Approve", callback_data=f"wok_{wid}"),
-        types.InlineKeyboardButton("❌ Reject", callback_data=f"wno_{wid}")
-    )
-
-    bot.send_message(ADMIN_ID, f"💸 {amt} ብር\n📱 {m.text}", reply_markup=mk)
+    bot.send_message(ADMIN_ID, f"💸 {amt} ብር\n📱 {m.text}")
     bot.send_message(m.chat.id,"⏳ በማረጋገጥ ላይ ነው")
 
-    # clear
-    user_data.pop(m.from_user.id, None)
+    user_data.pop(m.from_user.id,None)
 
 # =========================
-# ✅ WITHDRAW OK
-# =========================
-@bot.callback_query_handler(func=lambda c: c.data.startswith("wok_"))
-def wok(c):
-    wid = c.data.split("_")[1]
-    data = db.reference(f"withdraws/{wid}").get()
-
-    uid = data["user_id"]
-    amt = int(data["amount"])
-
-    ref = db.reference(f"users/{uid}")
-    bal = (ref.get() or {}).get("balance",0)
-
-    ref.update({"balance": bal - amt})
-
-    bot.send_message(uid, f"✅ {amt} ብር ተልኳል")
-    bot.answer_callback_query(c.id,"Done")
-
-# =========================
-# ❌ WITHDRAW NO
-# =========================
-@bot.callback_query_handler(func=lambda c: c.data.startswith("wno_"))
-def wno(c):
-    wid = c.data.split("_")[1]
-    data = db.reference(f"withdraws/{wid}").get()
-    bot.send_message(data["user_id"],"❌ rejected")
-
-# =========================
-# RUN
+# 🚀 RUN
 # =========================
 while True:
     try:
