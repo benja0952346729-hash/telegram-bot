@@ -4,7 +4,6 @@ import firebase_admin
 from firebase_admin import credentials, db
 import os
 import json
-import time
 
 # 🔐 Firebase
 firebase_key = os.environ.get("FIREBASE_KEY")
@@ -21,113 +20,115 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 ADMIN_ID = 6883208728
 
-# 👉 Main Menu
-def main_menu(chat_id):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = types.KeyboardButton("💰 ብር ያስገቡ")
-    markup.add(btn1)
+# 👉 user state
+user_data = {}
+
+# =========================
+# 🎮 MAIN MENU (ANY TEXT)
+# =========================
+def show_menu(chat_id):
+
+    markup = types.InlineKeyboardMarkup(row_width=2)
+
+    buttons = [
+        types.InlineKeyboardButton("50 ብር", callback_data="pay_50"),
+        types.InlineKeyboardButton("100 ብር", callback_data="pay_100"),
+        types.InlineKeyboardButton("200 ብር", callback_data="pay_200"),
+        types.InlineKeyboardButton("300 ብር", callback_data="pay_300"),
+        types.InlineKeyboardButton("500 ብር", callback_data="pay_500"),
+        types.InlineKeyboardButton("1000 ብር", callback_data="pay_1000"),
+    ]
+
+    markup.add(*buttons)
 
     bot.send_message(
         chat_id,
-        "🎮 ጫወታ ለመጫወት ብር ያስገቡ\n\n👇 ከታች ይምረጡ",
+        "🎮 ለመጫወት ብር ያስገቡ / ፓኬጅ ይግዙ 👇\n\n"
+        "✨ ፓኬጅ ይምረጡ\n\n"
+        "🔥 መልካም ጫወታ!",
         reply_markup=markup
     )
 
-# 🚀 Start
+# =========================
+# 🚀 START
+# =========================
 @bot.message_handler(commands=['start'])
 def start(message):
-    main_menu(message.chat.id)
+    show_menu(message.chat.id)
 
-# 💰 Deposit Button
-@bot.message_handler(func=lambda m: m.text == "💰 ብር ያስገቡ")
-def deposit(message):
-    markup = types.InlineKeyboardMarkup()
+# =========================
+# 🔁 ANY TEXT
+# =========================
+@bot.message_handler(func=lambda message: True, content_types=['text'])
+def all_text(message):
+    show_menu(message.chat.id)
 
-    prices = [50,100,200,300,400,500,1000,2000]
+# =========================
+# 📦 PACKAGE SELECT
+# =========================
+@bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
+def package(call):
 
-    for p in prices:
-        markup.add(types.InlineKeyboardButton(f"{p} ብር", callback_data=f"pay_{p}"))
+    amount = call.data.split("_")[1]
+    user_data[call.from_user.id] = {"amount": amount}
 
     bot.send_message(
-        message.chat.id,
-        "💳 ፓኬጅ ይምረጡ:",
-        reply_markup=markup
+        call.message.chat.id,
+        f"✅ {amount} ብር መርጠዋል!\n\n"
+        "💳 ክፍያ መረጃ\n"
+        "🏦 CBE: 1000641057146\n"
+        "📱 0952346729\n\n"
+        "📸 ክፍያ ካደረጉ screenshot ላኩ"
     )
 
-# 📦 Package Select
-@bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
-def package_selected(call):
-    amount = call.data.split("_")[1]
-
-    # save user choice
-    ref = db.reference("users").child(str(call.from_user.id))
-    ref.update({"amount": amount})
-
-    text = f"""
-💳 ክፍያ መረጃ
-
-🏦 CBE: 1000641057146
-📱 0952346729
-
-📸 ክፍያ ከፈጸሙ በኋላ screenshot ላኩ
-"""
-
-    bot.send_message(call.message.chat.id, text)
-
-# 📸 Screenshot receive
+# =========================
+# 📸 SCREENSHOT
+# =========================
 @bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    try:
-        user_id = str(message.from_user.id)
+def photo(message):
 
-        # get selected amount
-        ref = db.reference("users").child(user_id)
-        data = ref.get()
+    user = user_data.get(message.from_user.id)
 
-        if not data or "amount" not in data:
-            bot.send_message(message.chat.id, "❗ እባክዎ መጀመሪያ ፓኬጅ ይምረጡ")
-            return
-
-        amount = data["amount"]
-
-        # get photo link
-        file_info = bot.get_file(message.photo[-1].file_id)
-        file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
-
-        # save to firebase
-        db.reference("payments").push({
-            "user_id": user_id,
-            "username": message.from_user.username,
-            "amount": amount,
-            "image": file_url,
-            "status": "pending"
-        })
-
-        # ✅ user message
+    # ❌ if no package selected
+    if not user:
         bot.send_message(
             message.chat.id,
-            "⏳ ክፍያዎ በማረጋገጥ ላይ ነው...\n\n⌛ 5 ደቂቃ ይጠብቁ"
+            "❗ ብር ሳይመርጡ ክፍያ ላኩ!\n\n"
+            "📞 ለ admin ይደውሉ:\n"
+            "📱 0952346729\n\n"
+            "❓ ለጥያቄ እዚ ይፃፉ"
         )
+        return
 
-        # 📩 send to admin
-        bot.send_photo(
-            ADMIN_ID,
-            file_url,
-            caption=f"""
-📥 አዲስ ክፍያ
+    amount = user["amount"]
 
-👤 @{message.from_user.username}
-💰 {amount} ብር
-"""
-        )
+    # get photo url
+    file_info = bot.get_file(message.photo[-1].file_id)
+    file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
 
-    except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Error: {str(e)}")
+    # save firebase
+    db.reference("payments").push({
+        "user": message.from_user.username,
+        "amount": amount,
+        "image": file_url,
+        "status": "pending"
+    })
 
-# 🔁 ANY TEXT → menu
-@bot.message_handler(func=lambda message: True)
-def all_text(message):
-    main_menu(message.chat.id)
+    # send admin
+    bot.send_photo(
+        ADMIN_ID,
+        file_url,
+        caption=f"👤 @{message.from_user.username}\n💰 {amount} ብር"
+    )
 
+    # ✅ wait message
+    bot.send_message(
+        message.chat.id,
+        "⏳ ክፍያዎ በማረጋገጥ ላይ ነው...\n\n"
+        "⌛ 5 ደቂቃ ይጠብቁ"
+    )
+
+# =========================
 # 🚀 RUN
+# =========================
 bot.infinity_polling()
