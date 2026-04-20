@@ -31,12 +31,12 @@ if not BOT_TOKEN:
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # =========================
-# 👑 ADMIN ID (6883208728)
+# 👑 ADMIN ID (አስገባ!)
 # =========================
-ADMIN_ID = 123456789  # 👈 የአንተ telegram user id አስገባ
+ADMIN_ID = 6883208728
 
 # =========================
-# 💾 TEMP USER PACKAGE
+# 💾 TEMP STORAGE
 # =========================
 user_package = {}
 
@@ -52,7 +52,9 @@ def start(message):
 
     bot.send_message(
         message.chat.id,
-        "🎮 እንኳን ደህና መጡ\n\n💰 ብር ለመጫን ይጫኑ 👇",
+        "🎮 እንኳን ደህና መጡ!\n\n"
+        "💰 ጨዋታውን ለመጫወት ብር ያስገቡ\n"
+        "🔥 መልካም ጫወታ!",
         reply_markup=markup
     )
 
@@ -132,12 +134,39 @@ def handle_photo(message):
         caption=f"👤 User: {user}\n💰 Amount: {amount}\n🆔 ID: {payment_id}\n\n👉 Approve:\n/ok_{payment_id}"
     )
 
+    # ⏳ waiting message
     bot.send_message(
         message.chat.id,
-        "⏳ 5 ቼክ እየተደረገ ነው...\nእባክህ ትንሽ ቆይ"
+        "⏳ ክፍያዎ በማረጋገጥ ላይ ነው...\n\n"
+        "🔍 5 ደቂቃ ውስጥ ይፈተሻል\n"
+        "🙏 እባክዎ ትንሽ ይጠብቁ"
     )
 
 # =========================
-# 🔁 RUN BOT
+# 🔁 FALLBACK (ANY TEXT)
+# =========================
+@bot.message_handler(func=lambda m: True)
+def fallback(message):
+
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+    buttons = [
+        "💰 ብር ያስገቡ",
+        "50 ብር", "100 ብር",
+        "200 ብር", "500 ብር"
+    ]
+
+    markup.add(*buttons)
+
+    bot.send_message(
+        message.chat.id,
+        "🎮 ጨዋታውን ለመጫወት ብር ያስገቡ 💰\n\n"
+        "✨ ፓኬጅ ምረጥ እና ይጀምሩ\n"
+        "🔥 መልካም ጫወታ!",
+        reply_markup=markup
+    )
+
+# =========================
+# 🔁 RUN
 # =========================
 bot.infinity_polling()
