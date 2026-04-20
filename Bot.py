@@ -2,222 +2,215 @@ import telebot
 from telebot import types
 import firebase_admin
 from firebase_admin import credentials, db
-import os
-import json
+import os, json
 
-# =========================
 # 🔐 Firebase
-# =========================
-firebase_key = os.environ.get("FIREBASE_KEY")
-
-if not firebase_key:
-    raise Exception("FIREBASE_KEY not found")
-
-cred_dict = json.loads(firebase_key)
-cred = credentials.Certificate(cred_dict)
-
+cred = credentials.Certificate(json.loads(os.environ.get("FIREBASE_KEY")))
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://house-rent-app-3674a-default-rtdb.firebaseio.com/'
 })
 
-# =========================
 # 🤖 Bot
-# =========================
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-
-if not BOT_TOKEN:
-    raise Exception("BOT_TOKEN not found")
-
-bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
-
+bot = telebot.TeleBot(os.environ.get("BOT_TOKEN"), parse_mode="HTML")
 ADMIN_ID = 6883208728
 
-# 👉 memory
 user_data = {}
 
 # =========================
 # 🎮 MENU
 # =========================
-def show_menu(chat_id):
+def menu(chat_id):
+    m = types.InlineKeyboardMarkup(row_width=2)
 
-    markup = types.InlineKeyboardMarkup(row_width=2)
+    m.add(
+        types.InlineKeyboardButton("50 ብር", callback_data="pay_50"),
+        types.InlineKeyboardButton("100 ብር", callback_data="pay_100"),
+        types.InlineKeyboardButton("200 ብር", callback_data="pay_200"),
+        types.InlineKeyboardButton("300 ብር", callback_data="pay_300"),
+        types.InlineKeyboardButton("500 ብር", callback_data="pay_500"),
+        types.InlineKeyboardButton("1000 ብር", callback_data="pay_1000"),
+        types.InlineKeyboardButton("2000 ብር", callback_data="pay_2000"),
+    )
 
-    markup.add(
-        types.InlineKeyboardButton("💰 50 ብር", callback_data="pay_50"),
-        types.InlineKeyboardButton("💰 100 ብር", callback_data="pay_100"),
-        types.InlineKeyboardButton("💰 200 ብር", callback_data="pay_200"),
-        types.InlineKeyboardButton("💰 300 ብር", callback_data="pay_300"),
-        types.InlineKeyboardButton("💰 500 ብር", callback_data="pay_500"),
-        types.InlineKeyboardButton("💰 1000 ብር", callback_data="pay_1000"),
-        types.InlineKeyboardButton("💳 ባላንስ እይ", callback_data="check_balance")
+    m.add(
+        types.InlineKeyboardButton("💳 ባላንስ", callback_data="bal"),
+        types.InlineKeyboardButton("💸 Withdraw", callback_data="withdraw")
     )
 
     bot.send_message(
         chat_id,
-        "<b>🎮 ለመጫወት ብር ያስገቡ / ፓኬጅ ይግዙ 👇</b>\n\n"
-        "<i>🔥 መልካም ጫወታ!</i>",
-        reply_markup=markup
+        "<b>🎮 ለመጫወት ብር ያስገቡ</b>\n\n✨ ፓኬጅ ይምረጡ 👇",
+        reply_markup=m
     )
 
-# =========================
-# 🚀 START
-# =========================
 @bot.message_handler(commands=['start'])
-def start(message):
-    show_menu(message.chat.id)
-
-# =========================
-# 📦 PACKAGE
-# =========================
-@bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
-def package(call):
-
-    amount = call.data.split("_")[1]
-    user_data[call.from_user.id] = {"amount": amount}
-
-    bot.send_message(
-        call.message.chat.id,
-        f"<b>✅ {amount} ብር መርጠዋል!</b>\n\n"
-        "<b>💳 ክፍያ መረጃ</b>\n"
-        "🏦 CBE: 1000641057146\n"
-        "📱 0952346729\n\n"
-        "<b>📸 screenshot ላኩ</b>"
-    )
+def start(m):
+    menu(m.chat.id)
 
 # =========================
 # 💳 BALANCE
 # =========================
-@bot.callback_query_handler(func=lambda call: call.data == "check_balance")
-def balance(call):
+@bot.callback_query_handler(func=lambda c: c.data=="bal")
+def bal(c):
+    data = db.reference(f"users/{c.from_user.id}").get() or {}
+    bot.send_message(c.message.chat.id, f"💰 {data.get('balance',0)} ብር")
 
-    user_id = call.from_user.id
-    user_ref = db.reference(f"users/{user_id}")
-    data = user_ref.get() or {}
-
-    balance = data.get("balance", 0)
+# =========================
+# 💰 PAY
+# =========================
+@bot.callback_query_handler(func=lambda c: c.data.startswith("pay_"))
+def pay(c):
+    amt = c.data.split("_")[1]
+    user_data[c.from_user.id] = {"amount": amt}
 
     bot.send_message(
-        call.message.chat.id,
-        f"<b>💰 የእርስዎ ባላንስ:</b> {balance} ብር"
+        c.message.chat.id,
+        f"<b>✅ {amt} ብር መርጠዋል</b>\n\n"
+        "🏦 CBE: 1000641057146\n"
+        "📱 0952346729\n\n"
+        "📸 screenshot ላኩ"
     )
 
 # =========================
 # 📸 PHOTO
 # =========================
-@bot.message_handler(content_types=['photo', 'document'])
-def photo(message):
+@bot.message_handler(content_types=['photo'])
+def photo(m):
 
-    try:
-        user = user_data.get(message.from_user.id)
-
-        if not user or "amount" not in user:
-            bot.send_message(
-                message.chat.id,
-                "<b>❗ ብር ሳይመርጡ ክፍያ ላኩ!</b>\n📞 0952346729"
-            )
-            return
-
-        amount = user["amount"]
-
-        if message.content_type == 'photo':
-            file_id = message.photo[-1].file_id
-        else:
-            file_id = message.document.file_id
-
-        file_info = bot.get_file(file_id)
-        file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
-
-        # 👉 save payment
-        payment_ref = db.reference("payments").push({
-            "user": message.from_user.username,
-            "user_id": message.from_user.id,
-            "amount": amount,
-            "image": file_url,
-            "status": "pending"
-        })
-
-        payment_id = payment_ref.key
-
-        # 👉 buttons
-        markup = types.InlineKeyboardMarkup()
-        markup.add(
-            types.InlineKeyboardButton("✅ Approve", callback_data=f"approve_{payment_id}"),
-            types.InlineKeyboardButton("❌ Reject", callback_data=f"reject_{payment_id}")
-        )
-
-        # 👉 send to admin
-        bot.send_photo(
-            ADMIN_ID,
-            file_id,
-            caption=f"<b>👤 @{message.from_user.username}</b>\n💰 {amount} ብር",
-            reply_markup=markup
-        )
-
-        bot.send_message(
-            message.chat.id,
-            "<b>⏳ በማረጋገጥ ላይ ነው...</b>\n\n⌛ 5 ደቂቃ ይጠብቁ"
-        )
-
-    except Exception as e:
-        bot.send_message(message.chat.id, f"❌ {str(e)}")
-
-# =========================
-# ✅ ADMIN ACTION
-# =========================
-@bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
-def admin_action(call):
-
-    action, payment_id = call.data.split("_")
-
-    ref = db.reference(f"payments/{payment_id}")
-    data = ref.get()
-
-    if not data:
-        bot.answer_callback_query(call.id, "❌ not found")
+    if m.from_user.id not in user_data:
+        bot.send_message(m.chat.id,"❗ ብር አልመረጡም")
         return
 
-    user_id = data["user_id"]
-    amount = int(data["amount"])
+    amt = user_data[m.from_user.id]["amount"]
+    file_id = m.photo[-1].file_id
 
-    if action == "approve":
+    ref = db.reference("payments").push({
+        "user_id": m.from_user.id,
+        "amount": amt
+    })
 
-        ref.update({"status": "approved"})
+    pid = ref.key
 
-        user_ref = db.reference(f"users/{user_id}")
-        user_data_db = user_ref.get() or {}
+    mk = types.InlineKeyboardMarkup()
+    mk.add(
+        types.InlineKeyboardButton("✅ Approve", callback_data=f"ok_{pid}"),
+        types.InlineKeyboardButton("❌ Reject", callback_data=f"no_{pid}")
+    )
 
-        old_balance = user_data_db.get("balance", 0)
-        new_balance = old_balance + amount
+    bot.send_photo(ADMIN_ID, file_id, caption=f"{amt} ብር", reply_markup=mk)
 
-        user_ref.update({"balance": new_balance})
-
-        bot.send_message(
-            user_id,
-            f"<b>✅ ተረጋግጧል!</b>\n💰 {amount} ብር ተጨምሯል\n\n🎮 መልካም ጫወታ!"
-        )
-
-        bot.answer_callback_query(call.id, "Approved")
-
-    else:
-
-        ref.update({"status": "rejected"})
-
-        bot.send_message(
-            user_id,
-            "<b>❌ አልተረጋገጠም!</b>\n📞 0952346729"
-        )
-
-        bot.answer_callback_query(call.id, "Rejected")
+    bot.send_message(
+        m.chat.id,
+        "<b>⏳ በማረጋገጥ ላይ ነው</b>\n⌛ 5 ደቂቃ ይጠብቁ"
+    )
 
 # =========================
-# 🔁 TEXT
+# ✅ APPROVE
 # =========================
-@bot.message_handler(content_types=['text'])
-def all_text(message):
-    if message.text != "/start":
-        show_menu(message.chat.id)
+@bot.callback_query_handler(func=lambda c: c.data.startswith("ok_"))
+def ok(c):
+    pid = c.data.split("_")[1]
+    data = db.reference(f"payments/{pid}").get()
+
+    uid = data["user_id"]
+    amt = int(data["amount"])
+
+    ref = db.reference(f"users/{uid}")
+    bal = (ref.get() or {}).get("balance",0)
+
+    ref.update({"balance": bal + amt})
+
+    bot.send_message(uid, f"✅ {amt} ብር ገብቷል")
+    bot.answer_callback_query(c.id,"Approved")
 
 # =========================
-# 🚀 RUN
+# ❌ REJECT
 # =========================
-bot.infinity_polling()
+@bot.callback_query_handler(func=lambda c: c.data.startswith("no_"))
+def no(c):
+    pid = c.data.split("_")[1]
+    data = db.reference(f"payments/{pid}").get()
+    bot.send_message(data["user_id"], "❌ አልተቀበለም")
+
+# =========================
+# 💸 WITHDRAW START
+# =========================
+@bot.callback_query_handler(func=lambda c: c.data=="withdraw")
+def withdraw(c):
+    user_data[c.from_user.id] = {"step":"amount"}
+    bot.send_message(c.message.chat.id,"💸 ምን ያህል ብር ትፈልጋለህ?")
+
+# 👉 amount
+@bot.message_handler(func=lambda m: user_data.get(m.from_user.id,{}).get("step")=="amount")
+def w_amount(m):
+    user_data[m.from_user.id]["amount"] = int(m.text)
+    user_data[m.from_user.id]["step"] = "phone"
+    bot.send_message(m.chat.id,"📱 ስልክ ቁጥር ላክ")
+
+# 👉 phone
+@bot.message_handler(func=lambda m: user_data.get(m.from_user.id,{}).get("step")=="phone")
+def w_phone(m):
+
+    data = user_data[m.from_user.id]
+    amt = data["amount"]
+
+    ref = db.reference(f"users/{m.from_user.id}")
+    bal = (ref.get() or {}).get("balance",0)
+
+    if amt > bal:
+        bot.send_message(m.chat.id,"❌ ባላንስ አነስተኛ ነው")
+        return
+
+    wref = db.reference("withdraws").push({
+        "user_id": m.from_user.id,
+        "amount": amt,
+        "phone": m.text
+    })
+
+    wid = wref.key
+
+    mk = types.InlineKeyboardMarkup()
+    mk.add(
+        types.InlineKeyboardButton("✅ Approve", callback_data=f"wok_{wid}"),
+        types.InlineKeyboardButton("❌ Reject", callback_data=f"wno_{wid}")
+    )
+
+    bot.send_message(ADMIN_ID, f"💸 {amt} ብር\n📱 {m.text}", reply_markup=mk)
+    bot.send_message(m.chat.id,"⏳ በማረጋገጥ ላይ ነው")
+
+# =========================
+# ✅ WITHDRAW OK
+# =========================
+@bot.callback_query_handler(func=lambda c: c.data.startswith("wok_"))
+def wok(c):
+    wid = c.data.split("_")[1]
+    data = db.reference(f"withdraws/{wid}").get()
+
+    uid = data["user_id"]
+    amt = int(data["amount"])
+
+    ref = db.reference(f"users/{uid}")
+    bal = (ref.get() or {}).get("balance",0)
+
+    ref.update({"balance": bal - amt})
+
+    bot.send_message(uid,f"✅ {amt} ብር ተልኳል")
+    bot.answer_callback_query(c.id,"Done")
+
+# =========================
+# ❌ WITHDRAW NO
+# =========================
+@bot.callback_query_handler(func=lambda c: c.data.startswith("wno_"))
+def wno(c):
+    wid = c.data.split("_")[1]
+    data = db.reference(f"withdraws/{wid}").get()
+    bot.send_message(data["user_id"],"❌ rejected")
+
+# =========================
+# RUN
+# =========================
+while True:
+    try:
+        bot.infinity_polling()
+    except:
+        pass
