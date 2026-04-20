@@ -4,6 +4,8 @@ import firebase_admin
 from firebase_admin import credentials, db
 import os
 import json
+from flask import Flask
+import threading
 
 # =========================
 # 🔐 Firebase
@@ -124,28 +126,23 @@ def photo(message):
         else:
             file_id = message.document.file_id
 
-        file_info = bot.get_file(file_id)
-        file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
-
-        # 👉 save payment
+        # save to firebase
         payment_ref = db.reference("payments").push({
             "user": message.from_user.username,
             "user_id": message.from_user.id,
             "amount": amount,
-            "image": file_url,
+            "file_id": file_id,
             "status": "pending"
         })
 
         payment_id = payment_ref.key
 
-        # 👉 buttons
         markup = types.InlineKeyboardMarkup()
         markup.add(
             types.InlineKeyboardButton("✅ Approve", callback_data=f"approve_{payment_id}"),
             types.InlineKeyboardButton("❌ Reject", callback_data=f"reject_{payment_id}")
         )
 
-        # 👉 send to admin
         bot.send_photo(
             ADMIN_ID,
             file_id,
@@ -162,18 +159,16 @@ def photo(message):
         bot.send_message(message.chat.id, f"❌ {str(e)}")
 
 # =========================
-# ✅ ADMIN ACTION
+# ✅ ADMIN
 # =========================
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
 def admin_action(call):
 
     action, payment_id = call.data.split("_")
-
     ref = db.reference(f"payments/{payment_id}")
     data = ref.get()
 
     if not data:
-        bot.answer_callback_query(call.id, "❌ not found")
         return
 
     user_id = data["user_id"]
@@ -184,19 +179,15 @@ def admin_action(call):
         ref.update({"status": "approved"})
 
         user_ref = db.reference(f"users/{user_id}")
-        user_data_db = user_ref.get() or {}
+        old = user_ref.get() or {}
 
-        old_balance = user_data_db.get("balance", 0)
-        new_balance = old_balance + amount
-
+        new_balance = old.get("balance", 0) + amount
         user_ref.update({"balance": new_balance})
 
         bot.send_message(
             user_id,
             f"<b>✅ ተረጋግጧል!</b>\n💰 {amount} ብር ተጨምሯል\n\n🎮 መልካም ጫወታ!"
         )
-
-        bot.answer_callback_query(call.id, "Approved")
 
     else:
 
@@ -207,8 +198,6 @@ def admin_action(call):
             "<b>❌ አልተረጋገጠም!</b>\n📞 0952346729"
         )
 
-        bot.answer_callback_query(call.id, "Rejected")
-
 # =========================
 # 🔁 TEXT
 # =========================
@@ -218,6 +207,19 @@ def all_text(message):
         show_menu(message.chat.id)
 
 # =========================
-# 🚀 RUN
+# 🌐 FLASK (IMPORTANT)
 # =========================
-bot.infinity_polling()
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_bot():
+    bot.infinity_polling()
+
+threading.Thread(target=run_bot).start()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
