@@ -1,10 +1,30 @@
 import telebot
 from telebot import types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+
 import firebase_admin
 from firebase_admin import credentials, db
+
 import os
 import json
+import threading
+from flask import Flask
+
+# =========================
+# 🔥 FLASK (FOR RENDER)
+# =========================
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+threading.Thread(target=run_flask).start()
 
 # =========================
 # 🔐 FIREBASE
@@ -34,7 +54,6 @@ bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
 
 ADMIN_ID = 6883208728
 
-# memory
 user_data = {}
 
 # =========================
@@ -45,7 +64,6 @@ def show_menu(chat_id):
 
     markup = InlineKeyboardMarkup()
 
-    # 🔥 IMPORTANT (uid send)
     web_btn = InlineKeyboardButton(
         "🎮 Play Game",
         web_app=WebAppInfo(f"https://bingo-game-4.onrender.com/?uid={chat_id}")
@@ -68,7 +86,7 @@ def start(message):
     show_menu(message.chat.id)
 
 # =========================
-# 💳 DEPOSIT MENU
+# 💳 DEPOSIT
 # =========================
 
 @bot.callback_query_handler(func=lambda call: call.data == "deposit")
@@ -87,13 +105,13 @@ def deposit_menu(call):
     bot.send_message(call.message.chat.id, "💳 ብር ምረጥ 👇", reply_markup=markup)
 
 # =========================
-# 📦 PACKAGE SELECT
+# 📦 PACKAGE
 # =========================
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
 def package(call):
 
-    amount = int(call.data.split("_")[1])
+    amount = call.data.split("_")[1]
     user_data[call.from_user.id] = {"amount": amount}
 
     bot.send_message(
@@ -105,7 +123,7 @@ def package(call):
     )
 
 # =========================
-# 💰 CHECK BALANCE
+# 💰 BALANCE
 # =========================
 
 @bot.callback_query_handler(func=lambda call: call.data == "check_balance")
@@ -140,13 +158,10 @@ def photo(message):
         else:
             file_id = message.document.file_id
 
-        file_info = bot.get_file(file_id)
-        file_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
-
         payment_ref = db.reference("payments").push({
             "user_id": message.from_user.id,
             "amount": amount,
-            "image": file_url,
+            "file_id": file_id,
             "status": "pending"
         })
 
@@ -161,25 +176,21 @@ def photo(message):
         bot.send_photo(
             ADMIN_ID,
             file_id,
-            caption=f"💰 {amount} ብር\n👤 {message.from_user.id}",
+            caption=f"💰 {amount} ብር",
             reply_markup=markup
         )
 
         bot.send_message(message.chat.id, "⏳ በማረጋገጥ ላይ...")
 
     except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Error: {e}")
+        bot.send_message(message.chat.id, str(e))
 
 # =========================
-# ✅ ADMIN APPROVE / REJECT
+# ✅ ADMIN
 # =========================
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
 def admin(call):
-
-    if call.from_user.id != ADMIN_ID:
-        bot.answer_callback_query(call.id, "⛔ Not allowed")
-        return
 
     action, pid = call.data.split("_")
 
@@ -210,8 +221,8 @@ def admin(call):
         bot.send_message(user_id, "❌ ክፍያ ተቋርጧል")
 
 # =========================
-# 🚀 RUN
+# 🚀 RUN BOT
 # =========================
 
-print("🤖 Bot running...")
+print("🤖 Bot started...")
 bot.infinity_polling()
