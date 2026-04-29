@@ -11,9 +11,8 @@ import threading
 from flask import Flask
 
 # =========================
-# 🔥 FLASK (FOR RENDER)
+# 🔥 FLASK (KEEP ALIVE)
 # =========================
-
 app = Flask(__name__)
 
 @app.route('/')
@@ -29,10 +28,10 @@ threading.Thread(target=run_flask).start()
 # =========================
 # 🔐 FIREBASE
 # =========================
-
 firebase_key = os.environ.get("FIREBASE_KEY")
+
 if not firebase_key:
-    raise Exception("FIREBASE_KEY not found")
+    raise Exception("❌ FIREBASE_KEY not found")
 
 cred_dict = json.loads(firebase_key)
 cred = credentials.Certificate(cred_dict)
@@ -45,23 +44,20 @@ if not firebase_admin._apps:
 # =========================
 # 🤖 BOT
 # =========================
-
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
 if not BOT_TOKEN:
-    raise Exception("BOT_TOKEN not found")
+    raise Exception("❌ BOT_TOKEN not found")
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
 
 ADMIN_ID = 6883208728
-
 user_data = {}
 
 # =========================
 # 🎮 MENU
 # =========================
-
 def show_menu(chat_id):
-
     markup = InlineKeyboardMarkup()
 
     web_btn = InlineKeyboardButton(
@@ -70,7 +66,7 @@ def show_menu(chat_id):
     )
 
     pay_btn = InlineKeyboardButton("💳 Deposit", callback_data="deposit")
-    bal_btn = InlineKeyboardButton("💰 Balance", callback_data="check_balance")
+    bal_btn = InlineKeyboardButton("💰 Balance", callback_data="balance")
 
     markup.add(web_btn)
     markup.add(pay_btn, bal_btn)
@@ -80,15 +76,13 @@ def show_menu(chat_id):
 # =========================
 # 🚀 START
 # =========================
-
 @bot.message_handler(commands=['start'])
 def start(message):
     show_menu(message.chat.id)
 
 # =========================
-# 💳 DEPOSIT
+# 💳 DEPOSIT MENU
 # =========================
-
 @bot.callback_query_handler(func=lambda call: call.data == "deposit")
 def deposit_menu(call):
 
@@ -102,17 +96,19 @@ def deposit_menu(call):
         types.InlineKeyboardButton("1000 ብር", callback_data="pay_1000")
     )
 
+    bot.answer_callback_query(call.id)
     bot.send_message(call.message.chat.id, "💳 ብር ምረጥ 👇", reply_markup=markup)
 
 # =========================
-# 📦 PACKAGE
+# 📦 PACKAGE SELECT
 # =========================
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
 def package(call):
 
     amount = call.data.split("_")[1]
     user_data[call.from_user.id] = {"amount": amount}
+
+    bot.answer_callback_query(call.id)
 
     bot.send_message(
         call.message.chat.id,
@@ -125,9 +121,10 @@ def package(call):
 # =========================
 # 💰 BALANCE
 # =========================
-
-@bot.callback_query_handler(func=lambda call: call.data == "check_balance")
+@bot.callback_query_handler(func=lambda call: call.data == "balance")
 def balance(call):
+
+    bot.answer_callback_query(call.id)
 
     user_id = call.from_user.id
     ref = db.reference(f"users/{user_id}")
@@ -140,9 +137,8 @@ def balance(call):
 # =========================
 # 📸 PAYMENT PROOF
 # =========================
-
 @bot.message_handler(content_types=['photo', 'document'])
-def photo(message):
+def handle_payment(message):
 
     try:
         user = user_data.get(message.from_user.id)
@@ -176,21 +172,22 @@ def photo(message):
         bot.send_photo(
             ADMIN_ID,
             file_id,
-            caption=f"💰 {amount} ብር",
+            caption=f"💰 {amount} ብር\nUser: {message.from_user.id}",
             reply_markup=markup
         )
 
         bot.send_message(message.chat.id, "⏳ በማረጋገጥ ላይ...")
 
     except Exception as e:
-        bot.send_message(message.chat.id, str(e))
+        bot.send_message(message.chat.id, f"❌ Error: {str(e)}")
 
 # =========================
-# ✅ ADMIN
+# ✅ ADMIN ACTION
 # =========================
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith("approve_") or call.data.startswith("reject_"))
-def admin(call):
+def admin_action(call):
+
+    bot.answer_callback_query(call.id)
 
     action, pid = call.data.split("_")
 
@@ -208,10 +205,10 @@ def admin(call):
         user_ref = db.reference(f"users/{user_id}")
         user_data_db = user_ref.get() or {}
 
-        old = user_data_db.get("balance", 0)
-        new = old + amount
+        old_balance = user_data_db.get("balance", 0)
+        new_balance = old_balance + amount
 
-        user_ref.update({"balance": new})
+        user_ref.update({"balance": new_balance})
         ref.update({"status": "approved"})
 
         bot.send_message(user_id, f"✅ {amount} ብር ገብቷል!")
@@ -221,8 +218,7 @@ def admin(call):
         bot.send_message(user_id, "❌ ክፍያ ተቋርጧል")
 
 # =========================
-# 🚀 RUN BOT
+# 🚀 RUN
 # =========================
-
 print("🤖 Bot started...")
 bot.infinity_polling()
