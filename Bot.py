@@ -11,7 +11,7 @@ import threading
 from flask import Flask
 
 # =========================
-# 🔥 FLASK (KEEP ALIVE)
+# 🔥 FLASK KEEP ALIVE
 # =========================
 app = Flask(__name__)
 
@@ -23,13 +23,12 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-threading.Thread(target=run_flask).start()
+threading.Thread(target=run_flask, daemon=True).start()
 
 # =========================
-# 🔐 FIREBASE
+# 🔐 FIREBASE INIT
 # =========================
 firebase_key = os.environ.get("FIREBASE_KEY")
-
 if not firebase_key:
     raise Exception("❌ FIREBASE_KEY not found")
 
@@ -42,17 +41,18 @@ if not firebase_admin._apps:
     })
 
 # =========================
-# 🤖 BOT
+# 🤖 BOT INIT
 # =========================
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-
 if not BOT_TOKEN:
     raise Exception("❌ BOT_TOKEN not found")
 
 bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
 
 ADMIN_ID = 6883208728
-user_data = {}
+
+# ⚠ FIX: use Firebase instead of RAM (important fix)
+user_cache = {}
 
 # =========================
 # 🎮 MENU
@@ -62,14 +62,16 @@ def show_menu(chat_id):
 
     web_btn = InlineKeyboardButton(
         "🎮 Play Game",
-        web_app=WebAppInfo(f"https://bingo-game-4.onrender.com/?uid={chat_id}")
+        web_app=WebAppInfo(
+            url=f"https://bingo-game-4.onrender.com/?uid={chat_id}"
+        )
     )
 
-    pay_btn = InlineKeyboardButton("💳 Deposit", callback_data="deposit")
-    bal_btn = InlineKeyboardButton("💰 Balance", callback_data="balance")
-
     markup.add(web_btn)
-    markup.add(pay_btn, bal_btn)
+    markup.add(
+        InlineKeyboardButton("💳 Deposit", callback_data="deposit"),
+        InlineKeyboardButton("💰 Balance", callback_data="balance")
+    )
 
     bot.send_message(chat_id, "🎮 ጨዋታ ጀምር 👇", reply_markup=markup)
 
@@ -78,6 +80,13 @@ def show_menu(chat_id):
 # =========================
 @bot.message_handler(commands=['start'])
 def start(message):
+    user_id = message.from_user.id
+
+    # create user if not exists
+    ref = db.reference(f"users/{user_id}")
+    if not ref.get():
+        ref.set({"balance": 0})
+
     show_menu(message.chat.id)
 
 # =========================
@@ -85,16 +94,16 @@ def start(message):
 # =========================
 @bot.callback_query_handler(func=lambda call: call.data == "deposit")
 def deposit_menu(call):
-
     markup = types.InlineKeyboardMarkup(row_width=2)
 
-    markup.add(
-        types.InlineKeyboardButton("50 ብር", callback_data="pay_50"),
-        types.InlineKeyboardButton("100 ብር", callback_data="pay_100"),
-        types.InlineKeyboardButton("200 ብር", callback_data="pay_200"),
-        types.InlineKeyboardButton("500 ብር", callback_data="pay_500"),
-        types.InlineKeyboardButton("1000 ብር", callback_data="pay_1000")
-    )
+    amounts = [50, 100, 200, 500, 1000]
+
+    buttons = [
+        types.InlineKeyboardButton(f"{a} ብር", callback_data=f"pay_{a}")
+        for a in amounts
+    ]
+
+    markup.add(*buttons)
 
     bot.answer_callback_query(call.id)
     bot.send_message(call.message.chat.id, "💳 ብር ምረጥ 👇", reply_markup=markup)
@@ -105,17 +114,19 @@ def deposit_menu(call):
 @bot.callback_query_handler(func=lambda call: call.data.startswith("pay_"))
 def package(call):
 
-    amount = call.data.split("_")[1]
-    user_data[call.from_user.id] = {"amount": amount}
+    amount = int(call.data.split("_")[1])
+    user_cache[call.from_user.id] = amount  # TEMP STORAGE
 
     bot.answer_callback_query(call.id)
 
     bot.send_message(
         call.message.chat.id,
-        f"✅ {amount} ብር መርጠዋል!\n\n"
-        "🏦 CBE: 1000641057146\n"
-        "📱 0952346729\n\n"
-        "📸 screenshot ላኩ"
+        f"""✅ {amount} ብር መርጠዋል!
+
+🏦 CBE: 1000641057146
+📱 0952346729
+
+📸 screenshot ላኩ"""
     )
 
 # =========================
@@ -130,9 +141,10 @@ def balance(call):
     ref = db.reference(f"users/{user_id}")
     data = ref.get() or {}
 
-    bal = data.get("balance", 0)
-
-    bot.send_message(call.message.chat.id, f"💰 ባላንስ: {bal} ብር")
+    bot.send_message(
+        call.message.chat.id,
+        f"💰 ባላንስ: <b>{data.get('balance', 0)}</b> ብር"
+    )
 
 # =========================
 # 📸 PAYMENT PROOF
@@ -140,46 +152,44 @@ def balance(call):
 @bot.message_handler(content_types=['photo', 'document'])
 def handle_payment(message):
 
-    try:
-        user = user_data.get(message.from_user.id)
+    user_id = message.from_user.id
 
-        if not user:
-            bot.send_message(message.chat.id, "❗ መጀመሪያ ብር ምረጥ")
-            return
+    # FIX: check safe
+    if user_id not in user_cache:
+        bot.send_message(message.chat.id, "❗ መጀመሪያ ብር ምረጥ")
+        return
 
-        amount = int(user["amount"])
+    amount = user_cache[user_id]
 
-        if message.content_type == 'photo':
-            file_id = message.photo[-1].file_id
-        else:
-            file_id = message.document.file_id
+    file_id = None
+    if message.content_type == 'photo':
+        file_id = message.photo[-1].file_id
+    else:
+        file_id = message.document.file_id
 
-        payment_ref = db.reference("payments").push({
-            "user_id": message.from_user.id,
-            "amount": amount,
-            "file_id": file_id,
-            "status": "pending"
-        })
+    payment_ref = db.reference("payments").push({
+        "user_id": user_id,
+        "amount": amount,
+        "file_id": file_id,
+        "status": "pending"
+    })
 
-        pid = payment_ref.key
+    pid = payment_ref.key
 
-        markup = types.InlineKeyboardMarkup()
-        markup.add(
-            types.InlineKeyboardButton("✅ Approve", callback_data=f"approve_{pid}"),
-            types.InlineKeyboardButton("❌ Reject", callback_data=f"reject_{pid}")
-        )
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton("✅ Approve", callback_data=f"approve_{pid}"),
+        InlineKeyboardButton("❌ Reject", callback_data=f"reject_{pid}")
+    )
 
-        bot.send_photo(
-            ADMIN_ID,
-            file_id,
-            caption=f"💰 {amount} ብር\nUser: {message.from_user.id}",
-            reply_markup=markup
-        )
+    bot.send_photo(
+        ADMIN_ID,
+        file_id,
+        caption=f"💰 {amount} ብር\nUser: {user_id}",
+        reply_markup=markup
+    )
 
-        bot.send_message(message.chat.id, "⏳ በማረጋገጥ ላይ...")
-
-    except Exception as e:
-        bot.send_message(message.chat.id, f"❌ Error: {str(e)}")
+    bot.send_message(message.chat.id, "⏳ በማረጋገጥ ላይ...")
 
 # =========================
 # ✅ ADMIN ACTION
@@ -200,13 +210,12 @@ def admin_action(call):
     user_id = data["user_id"]
     amount = int(data["amount"])
 
+    user_ref = db.reference(f"users/{user_id}")
+    user_data = user_ref.get() or {}
+
     if action == "approve":
 
-        user_ref = db.reference(f"users/{user_id}")
-        user_data_db = user_ref.get() or {}
-
-        old_balance = user_data_db.get("balance", 0)
-        new_balance = old_balance + amount
+        new_balance = user_data.get("balance", 0) + amount
 
         user_ref.update({"balance": new_balance})
         ref.update({"status": "approved"})
@@ -221,4 +230,4 @@ def admin_action(call):
 # 🚀 RUN
 # =========================
 print("🤖 Bot started...")
-bot.infinity_polling()
+bot.infinity_polling(skip_pending=True)
