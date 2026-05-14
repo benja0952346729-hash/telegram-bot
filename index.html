@@ -1,0 +1,2700 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bingo Pro — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c14;
+  --surface: #0f1520;
+  --card: #141c2e;
+  --border: #1e2a40;
+  --gold: #f5c842;
+  --gold2: #e8a800;
+  --green: #00e676;
+  --red: #ff3d57;
+  --blue: #2979ff;
+  --purple: #aa44ff;
+  --cyan: #00e5ff;
+  --text: #e8eaf0;
+  --muted: #5a6a8a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;background-image:radial-gradient(ellipse 80% 40% at 50% -10%, #1a2a4a 0%, transparent 70%);}
+
+/* LOCK */
+#lockScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#08090f,#0d1520);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.lock-box{background:#141c2e;border:2px solid var(--gold);border-radius:24px;padding:40px 32px;width:100%;max-width:360px;text-align:center;box-shadow:0 0 60px rgba(245,200,66,.15);}
+.lock-logo{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:6px;color:var(--gold);margin-bottom:4px;}
+.lock-sub{font-size:0.72rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:24px;}
+.lock-inp{width:100%;background:#0a0f1c;border:2px solid var(--border);color:var(--text);padding:14px 18px;border-radius:12px;font-size:1.1rem;outline:none;text-align:center;letter-spacing:4px;margin-bottom:12px;font-family:'Outfit',sans-serif;transition:border-color .2s;}
+.lock-inp:focus{border-color:var(--gold);}
+.lock-btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080c14;padding:14px;border-radius:12px;border:none;font-family:'Outfit',sans-serif;font-weight:900;font-size:1rem;cursor:pointer;letter-spacing:2px;}
+
+/* TOPBAR */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:50;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:4px;color:var(--gold);text-shadow:0 0 20px #f5c84266;flex-shrink:0;}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:0.8rem;font-weight:600;white-space:nowrap;}
+.badge .val{color:var(--gold);font-weight:700;}
+.stats-row{display:flex;gap:8px;flex-wrap:wrap;}
+.round-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1a0a30,#0d0618);border:1px solid var(--purple);border-radius:20px;padding:5px 14px;font-size:0.82rem;font-weight:700;color:var(--purple);}
+.round-num{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--gold);}
+
+/* MAIN */
+.main{max-width:680px;margin:0 auto;padding:16px 12px 80px;}
+.section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;}
+.sec-title{font-size:0.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+/* COLLAPSE */
+.collapse-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:2px 0;}
+.collapse-header:active{opacity:.7;}
+.collapse-icon{font-size:1rem;color:var(--cyan);transition:transform .2s;flex-shrink:0;}
+.collapse-body{overflow:hidden;}
+
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:700;cursor:pointer;transition:all .18s;}
+.btn:active{transform:scale(0.97)!important;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080c14;width:100%;padding:16px;font-size:1.1rem;border-radius:14px;}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 28px #f5c84244;}
+.btn-green{background:var(--green);color:#080c14;padding:10px 22px;font-size:0.9rem;}
+.btn-green:hover{transform:translateY(-2px);box-shadow:0 6px 20px #00e67644;}
+.btn-red{background:var(--red);color:white;padding:10px 22px;font-size:0.9rem;}
+.btn-red:hover{transform:translateY(-2px);box-shadow:0 6px 20px #ff3d5744;}
+.btn-row{display:flex;gap:10px;}
+
+/* INPUTS */
+.input-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.inp{flex:1;min-width:110px;background:#0a0f1c;border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.95rem;outline:none;transition:border-color .2s;}
+.inp:focus{border-color:var(--gold);}
+.inp::placeholder{color:var(--muted);}
+select{background:#0a0f1c;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.85rem;}
+
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.stat-box{background:#0a0f1c;border-radius:12px;padding:14px;text-align:center;border:1px solid var(--border);}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--cyan);letter-spacing:1px;}
+.stat-lbl{font-size:0.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+
+/* BALLS */
+.balls-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.ball{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;animation:ballIn .3s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+@keyframes ballIn{0%{transform:scale(0);opacity:0;}70%{transform:scale(1.2);}100%{transform:scale(1);opacity:1;}}
+.bB{background:#2979ff;color:white;}.bI{background:#aa44ff;color:white;}.bN{background:#ff3d57;color:white;}.bG{background:#00c853;color:white;}.bO{background:#f5c842;color:#080c14;}
+
+/* PLAYERS */
+.player-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0a0f1c;border-radius:10px;margin-bottom:6px;border:1px solid var(--border);}
+.player-name{font-weight:600;font-size:0.9rem;}
+.player-cards{color:var(--muted);font-size:0.8rem;}
+.empty{color:var(--muted);text-align:center;font-size:0.85rem;padding:14px;}
+
+/* AUTO MODE */
+.auto-mode-box{background:linear-gradient(135deg,#001a10,#000d20);border:2px solid var(--green);border-radius:16px;padding:18px;margin-bottom:14px;}
+.auto-mode-box.active-auto{border-color:var(--gold);animation:autoGlow 1.5s infinite alternate;}
+@keyframes autoGlow{from{box-shadow:0 0 10px rgba(245,200,66,.2);}to{box-shadow:0 0 30px rgba(245,200,66,.5);}}
+.auto-mode-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:3px;color:var(--green);margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.auto-mode-title.running{color:var(--gold);}
+.auto-mode-desc{font-size:0.78rem;color:var(--muted);margin-bottom:14px;}
+.cd-btn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.cd-btn{background:#0a0f1c;border:2px solid var(--border);border-radius:12px;padding:14px 4px;text-align:center;font-weight:900;font-size:1rem;cursor:pointer;transition:all .15s;color:var(--text);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;}
+.cd-btn:hover{border-color:var(--green);color:var(--green);}
+.cd-btn.active{background:var(--green);color:#080c14;border-color:var(--green);}
+.call-speed-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.call-speed-row label{font-size:0.8rem;color:var(--muted);}
+.auto-status-row{display:flex;align-items:center;gap:12px;background:#0a0f1c;border-radius:12px;padding:14px;border:1px solid var(--border);margin-bottom:10px;}
+.auto-phase-label{font-size:0.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.auto-phase-val{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--cyan);}
+.auto-cd-val{font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--gold);line-height:1;min-width:80px;text-align:right;}
+.auto-cd-lbl{font-size:0.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+
+/* GAME STATUS */
+.player-count-section{background:#0a0f1c;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;}
+.player-count-label{font-size:0.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.player-count-display{display:flex;align-items:center;gap:12px;}
+.player-count-num{font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--gold);line-height:1;}
+.player-count-info{font-size:0.8rem;color:var(--muted);}
+.player-count-info span{color:var(--cyan);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:6px;transition:background .3s;}
+.status-dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:dotPulse 1s infinite;}
+@keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.status-text{font-size:0.85rem;color:var(--muted);}
+.status-text.live{color:var(--green);}
+
+/* BIG NUMBER */
+.big-num-wrap{text-align:center;padding:10px 0 16px;}
+.big-num{font-family:'Bebas Neue',sans-serif;font-size:7rem;line-height:1;color:var(--gold);text-shadow:0 0 60px #f5c84255;letter-spacing:2px;}
+.big-num .letter{color:var(--red);font-size:3.5rem;vertical-align:super;}
+
+/* BOTS */
+.bot-count-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.bot-count-input-wrap{display:flex;align-items:center;gap:8px;background:#0a0f1c;border:1px solid var(--purple);border-radius:10px;padding:8px 14px;}
+.bot-count-input{background:transparent;border:none;color:var(--purple);font-family:'Bebas Neue',sans-serif;font-size:2rem;width:80px;outline:none;text-align:center;}
+.bot-count-lbl{font-size:0.7rem;color:var(--muted);letter-spacing:1px;}
+.bot-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.bot-item{background:#0a0f1c;border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;font-size:0.82rem;}
+.bot-name{font-weight:600;color:var(--muted);}
+.bot-card-num{color:var(--muted);font-size:0.75rem;}
+
+/* PAYMENTS */
+.pay-card{background:#0a0f1c;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.pay-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.pay-thumb{width:52px;height:52px;object-fit:cover;border-radius:10px;cursor:pointer;flex-shrink:0;border:2px solid var(--border);}
+.pay-thumb:hover{border-color:var(--gold);}
+.pay-info{flex:1;min-width:120px;}
+.pay-name{font-weight:700;font-size:0.95rem;color:var(--text);}
+.pay-uid{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+.pay-amount{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);}
+.pay-time{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.pay-actions{display:flex;gap:8px;padding:10px 14px;background:#060a12;}
+.pay-approve{background:var(--green);color:#080c14;padding:9px 20px;font-size:0.85rem;font-weight:700;border-radius:10px;border:none;cursor:pointer;flex:1;}
+.pay-reject{background:var(--red);color:white;padding:9px 20px;font-size:0.85rem;font-weight:700;border-radius:10px;border:none;cursor:pointer;flex:1;}
+
+/* WITHDRAWALS */
+.wd-card{background:#0a0f1c;border:1px solid #2a1a00;border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.wd-card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #2a1a00;flex-wrap:wrap;}
+.wd-info{flex:1;min-width:120px;}
+.wd-name{font-weight:700;font-size:0.95rem;color:var(--text);}
+.wd-uid{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+.wd-amount{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);}
+.wd-acct{font-size:0.83rem;color:var(--cyan);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.wd-method-badge{background:#001830;border:1px solid var(--blue);border-radius:6px;padding:2px 8px;font-size:0.72rem;color:var(--blue);font-weight:700;}
+.wd-acct-num{font-family:monospace;font-size:0.88rem;color:var(--cyan);letter-spacing:1px;}
+.wd-time{font-size:0.72rem;color:var(--muted);margin-top:3px;}
+.wd-actions{display:flex;gap:8px;padding:10px 14px;background:#06060a;}
+.wd-paid{background:var(--green);color:#080c14;padding:9px 20px;font-size:0.85rem;font-weight:700;border-radius:10px;border:none;cursor:pointer;flex:1;}
+.wd-reject{background:var(--red);color:white;padding:9px 20px;font-size:0.85rem;font-weight:700;border-radius:10px;border:none;cursor:pointer;flex:1;}
+
+/* TABS */
+.tab-row{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.tab-btn{flex:1;padding:10px;font-family:'Outfit',sans-serif;font-weight:700;font-size:0.85rem;background:transparent;border:none;color:var(--muted);cursor:pointer;transition:all .18s;}
+.tab-btn.active{background:var(--cyan);color:#080c14;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+.interval-btn{background:#0a0f1c;border:2px solid var(--border);border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;color:var(--muted);transition:all .15s;}
+.interval-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.interval-btn.active{background:var(--cyan);color:#080c14;border-color:var(--cyan);}
+.count-badge{background:var(--red);color:white;border-radius:20px;padding:1px 7px;font-size:0.72rem;font-weight:700;margin-left:5px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;justify-content:center;align-items:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:90%;max-width:360px;animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes modalIn{0%{transform:scale(.8);opacity:0;}100%{transform:scale(1);opacity:1;}}
+
+/* ═══ SETTINGS PASSWORD MODAL ═══ */
+#settingsPwModal{
+  display:none;
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,.88);
+  justify-content:center;align-items:center;
+}
+#settingsPwModal.open{display:flex;}
+.settings-pw-box{
+  background:#141c2e;
+  border:2px solid var(--gold);
+  border-radius:20px;
+  padding:32px 28px;
+  width:90%;max-width:340px;
+  text-align:center;
+  box-shadow:0 0 50px rgba(245,200,66,.2);
+  animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+.settings-pw-icon{font-size:2.4rem;margin-bottom:8px;}
+.settings-pw-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:4px;color:var(--gold);margin-bottom:4px;}
+.settings-pw-sub{font-size:0.75rem;color:var(--muted);margin-bottom:18px;letter-spacing:1px;}
+.settings-pw-inp{
+  width:100%;background:#0a0f1c;border:2px solid var(--border);
+  color:var(--text);padding:13px 16px;border-radius:12px;
+  font-size:1.1rem;outline:none;text-align:center;letter-spacing:6px;
+  margin-bottom:10px;font-family:'Outfit',sans-serif;transition:border-color .2s;
+}
+.settings-pw-inp:focus{border-color:var(--gold);}
+.settings-pw-btn{
+  width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#080c14;padding:13px;border-radius:12px;border:none;
+  font-family:'Outfit',sans-serif;font-weight:900;font-size:1rem;
+  cursor:pointer;letter-spacing:2px;margin-bottom:8px;
+}
+.settings-pw-cancel{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  padding:10px;border-radius:10px;width:100%;font-family:'Outfit',sans-serif;
+  font-size:0.85rem;cursor:pointer;
+}
+.settings-pw-cancel:hover{border-color:var(--red);color:var(--red);}
+.settings-pw-err{color:var(--red);font-size:0.8rem;min-height:18px;margin-top:4px;}
+
+/* CHANGE PASSWORD SECTION */
+.change-pw-section{
+  background:#0a0f1c;border:1px solid var(--gold);border-radius:14px;
+  padding:18px;margin-top:14px;display:none;
+}
+.change-pw-section.open{display:block;}
+
+/* PHONE-STYLE PW STEPS */
+.pw-steps{display:flex;gap:0;margin-bottom:16px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.pw-step-dot{flex:1;padding:8px 4px;text-align:center;font-size:0.65rem;letter-spacing:1px;color:var(--muted);background:#060a12;border-right:1px solid var(--border);transition:all .2s;}
+.pw-step-dot:last-child{border-right:none;}
+.pw-step-dot.active{background:var(--gold);color:#080c14;font-weight:700;}
+.pw-step-dot.done{background:#001a08;color:var(--green);}
+.pw-field-wrap{margin-bottom:12px;}
+.pw-field-label{font-size:0.72rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.pw-field-inp{
+  width:100%;background:#060a12;border:2px solid var(--border);
+  color:var(--text);padding:14px 16px;border-radius:12px;
+  font-size:1.2rem;outline:none;text-align:center;letter-spacing:8px;
+  font-family:'Outfit',sans-serif;transition:border-color .2s;
+}
+.pw-field-inp:focus{border-color:var(--gold);}
+.pw-field-inp.err{border-color:var(--red);animation:shake .3s;}
+.pw-field-inp.ok{border-color:var(--green);}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.pw-next-btn{
+  width:100%;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#080c14;padding:14px;border-radius:12px;border:none;
+  font-family:'Outfit',sans-serif;font-weight:900;font-size:1rem;
+  cursor:pointer;letter-spacing:2px;margin-bottom:8px;
+}
+.pw-back-btn{
+  width:100%;background:transparent;border:1px solid var(--border);
+  color:var(--muted);padding:10px;border-radius:10px;
+  font-family:'Outfit',sans-serif;font-size:0.85rem;cursor:pointer;
+}
+.pw-back-btn:hover{border-color:var(--red);color:var(--red);}
+.pw-err-msg{color:var(--red);font-size:0.78rem;text-align:center;min-height:18px;margin-bottom:8px;}
+.pw-success-box{
+  text-align:center;padding:20px;
+  background:#001a08;border:1px solid var(--green);border-radius:12px;
+}
+.pw-success-icon{font-size:2.5rem;margin-bottom:8px;}
+.pw-success-text{color:var(--green);font-weight:700;font-size:1rem;}
+
+/* BOT WIN PERCENT LOCK OVERLAY */
+.bot-win-lock{
+  position:relative;
+}
+.bot-win-locked-overlay{
+  position:absolute;inset:0;background:rgba(8,12,20,0.75);
+  border-radius:14px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  z-index:5;transition:all .2s;
+}
+.bot-win-locked-overlay:hover{background:rgba(8,12,20,0.6);}
+.bot-win-lock-icon{font-size:2rem;}
+.bot-win-lock-text{font-size:0.8rem;color:var(--gold);font-weight:700;letter-spacing:2px;}
+.bot-win-lock-hint{font-size:0.7rem;color:var(--muted);}
+
+/* SETTINGS GEAR ICON in topbar */
+.gear-btn{
+  background:transparent;border:1px solid var(--border);border-radius:10px;
+  padding:6px 10px;cursor:pointer;font-size:1.1rem;color:var(--muted);
+  transition:all .2s;
+}
+.gear-btn:hover{border-color:var(--gold);color:var(--gold);}
+/* ══ AGENT PANEL STYLES ══ */
+.add-inp{flex:1;min-width:160px;background:#0a0f1c;border:1px solid var(--border);color:var(--text);padding:11px 16px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:600;outline:none;transition:border-color .2s;}
+.add-inp:focus{border-color:var(--gold);}
+.add-btn-ag{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#080c14;border:none;border-radius:10px;padding:11px 22px;font-family:'Outfit',sans-serif;font-weight:900;font-size:0.85rem;letter-spacing:2px;cursor:pointer;transition:transform .15s;white-space:nowrap;}
+.add-btn-ag:hover{transform:translateY(-1px);}
+.ag-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+@media(max-width:500px){.ag-stat-grid{grid-template-columns:1fr 1fr;}}
+.ag-stat-box{background:#0a0f1c;border:1px solid var(--border);border-radius:12px;padding:14px;}
+.ag-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold);}
+.ag-stat-lbl{font-size:0.6rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.agent-card-ag{background:#141c2e;border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;}
+.agent-head-ag{padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;cursor:pointer;transition:background .15s;}
+.agent-head-ag:hover{background:rgba(255,255,255,0.02);}
+.agent-avatar-ag{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(245,200,66,0.05));border:1px solid rgba(245,200,66,0.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.agent-name-ag{font-size:1rem;font-weight:800;color:var(--text);flex:1;}
+.a-stat-ag{font-size:0.68rem;padding:4px 10px;border-radius:8px;font-family:'Outfit',sans-serif;}
+.a-stat-ag.paid{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);}
+.a-stat-ag.rej{background:rgba(255,61,87,0.08);border:1px solid rgba(255,61,87,0.2);color:var(--red);}
+.a-stat-ag.amt{background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);color:var(--gold);}
+.ag-chevron{font-size:0.8rem;color:var(--muted);transition:transform .2s;}
+.ag-chevron.open{transform:rotate(90deg);}
+.delete-btn-ag{background:transparent;border:1px solid rgba(255,61,87,0.2);color:var(--red);border-radius:8px;padding:5px 12px;font-size:0.65rem;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;}
+.delete-btn-ag:hover{background:rgba(255,61,87,0.1);}
+.agent-detail-ag{border-top:1px solid var(--border);display:none;}
+.agent-detail-ag.open{display:block;}
+.ag-day-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ag-day-label{font-size:0.62rem;color:var(--muted);width:68px;flex-shrink:0;}
+.ag-day-track{flex:1;background:var(--border);border-radius:6px;height:18px;overflow:hidden;}
+.ag-day-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:6px;transition:width .7s cubic-bezier(.34,1.56,.64,1);}
+.ag-day-val{font-size:0.63rem;color:var(--gold);width:100px;text-align:right;flex-shrink:0;}
+.ag-hist-item{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--surface);font-size:0.7rem;gap:10px;flex-wrap:wrap;}
+.ag-hist-item:last-child{border-bottom:none;}
+@keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+
+</style>
+</head>
+<body>
+
+<!-- ═══ MAIN LOGIN LOCK ═══ -->
+<div id="lockScreen">
+  <div class="lock-box">
+
+<!-- PANEL SELECT VIEW -->
+<div id="panelSelectView">
+  <div class="lock-logo">BINGO</div>
+  <div class="lock-sub">SELECT PANEL</div>
+  <div style="font-size:2.5rem;margin-bottom:16px;">🎮</div>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <button class="lock-btn" onclick="selectPanel('bingo')"
+      style="background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;gap:10px;">
+      🎮 BINGO ADMIN
+    </button>
+    <button class="lock-btn" onclick="selectPanel('agent')"
+      style="background:linear-gradient(135deg,#2979ff,#1a4fcc);color:white;display:flex;align-items:center;justify-content:center;gap:10px;">
+      🤖 AGENT PANEL
+    </button>
+    <button class="lock-btn" onclick="selectPanel('promotion')"
+      style="background:linear-gradient(135deg,#aa44ff,#7b2fff);color:white;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;">
+      📢 PROMOTION
+    </button>
+  </div>
+  <!-- LOCK TOGGLE -->
+  <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+    <div id="lockStatus" style="font-size:0.72rem;color:var(--muted);margin-bottom:10px;letter-spacing:1px;">
+      🔓 Lock OFF
+    </div>
+    <button onclick="togglePanelLock()" id="lockToggleBtn"
+      style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.85rem;cursor:pointer;">
+      🔒 Lock ያድርጉ
+    </button>
+  </div>
+</div>
+
+<!-- LOGIN VIEW (only shown when locked) -->
+<div id="loginView" style="display:none;">
+  <div class="lock-logo" id="loginPanelTitle">BINGO</div>
+  <div class="lock-sub" id="loginPanelSub">ADMIN PANEL</div>
+  <div style="font-size:2.5rem;margin-bottom:12px;" id="loginPanelIcon">🔐</div>
+  <div style="font-size:1rem;font-weight:700;margin-bottom:16px;">Password ያስገቡ</div>
+  <input id="pwInput" class="lock-inp" type="password" placeholder="••••••••"
+    onkeydown="if(event.key==='Enter')checkPassword()">
+  <button class="lock-btn" onclick="checkPassword()">🔓 LOGIN</button>
+  <div id="pwError" style="color:var(--red);font-size:0.82rem;margin-top:10px;min-height:18px;"></div>
+  <button onclick="backToPanelSelect()"
+    style="margin-top:8px;background:transparent;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;font-family:'Outfit',sans-serif;">
+    ← ተመለስ
+  </button>
+</div>
+
+    <!-- CHANGE LOGIN PASSWORD VIEW (phone-style, 3 steps) -->
+    <div id="loginChangePwView" style="display:none;">
+      <div class="lock-logo" style="font-size:2rem;">CHANGE PW</div>
+      <div class="lock-sub" style="margin-bottom:16px;">LOGIN PASSWORD</div>
+
+      <!-- Step dots -->
+      <div style="display:flex;gap:6px;justify-content:center;margin-bottom:18px;" id="loginPwDots">
+        <div id="lDot1" style="flex:1;background:var(--gold);border-radius:6px;padding:6px 4px;font-size:0.65rem;font-weight:700;color:#080c14;letter-spacing:1px;">1 ያሁኑ</div>
+        <div id="lDot2" style="flex:1;background:#1e2a40;border-radius:6px;padding:6px 4px;font-size:0.65rem;color:var(--muted);letter-spacing:1px;">2 አዲስ</div>
+        <div id="lDot3" style="flex:1;background:#1e2a40;border-radius:6px;padding:6px 4px;font-size:0.65rem;color:var(--muted);letter-spacing:1px;">3 ያረጋግጥ</div>
+      </div>
+
+      <!-- Step 1 -->
+      <div id="lStep1">
+        <div style="font-size:0.72rem;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">ያሁኑ PASSWORD</div>
+        <input id="lCurrent" class="lock-inp" type="password" placeholder="••••••"
+          onkeydown="if(event.key==='Enter')lNext1()">
+        <div id="lErr1" style="color:var(--red);font-size:0.78rem;min-height:18px;margin-bottom:8px;"></div>
+        <button class="lock-btn" onclick="lNext1()">ቀጥል →</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="lStep2" style="display:none;">
+        <div style="font-size:0.72rem;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">አዲስ PASSWORD</div>
+        <input id="lNew" class="lock-inp" type="password" placeholder="••••••"
+          onkeydown="if(event.key==='Enter')lNext2()">
+        <div id="lErr2" style="color:var(--red);font-size:0.78rem;min-height:18px;margin-bottom:8px;"></div>
+        <button class="lock-btn" onclick="lNext2()">ቀጥል →</button>
+        <button onclick="lGoStep(1)" style="width:100%;margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-family:'Outfit',sans-serif;cursor:pointer;">← ተመለስ</button>
+      </div>
+
+      <!-- Step 3 -->
+      <div id="lStep3" style="display:none;">
+        <div style="font-size:0.72rem;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">አዲሱን ያረጋግጥ</div>
+        <input id="lConfirm" class="lock-inp" type="password" placeholder="••••••"
+          onkeydown="if(event.key==='Enter')lSave()">
+        <div id="lErr3" style="color:var(--red);font-size:0.78rem;min-height:18px;margin-bottom:8px;"></div>
+        <button class="lock-btn" onclick="lSave()">💾 SAVE</button>
+        <button onclick="lGoStep(2)" style="width:100%;margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:10px;font-family:'Outfit',sans-serif;cursor:pointer;">← ተመለስ</button>
+      </div>
+
+      <!-- Success -->
+      <div id="lSuccess" style="display:none;text-align:center;padding:10px 0;">
+        <div style="font-size:3rem;margin-bottom:8px;">✅</div>
+        <div style="color:var(--green);font-weight:700;font-size:1.1rem;margin-bottom:6px;">Password ተቀይሯል!</div>
+        <div style="color:var(--muted);font-size:0.78rem;margin-bottom:16px;">አዲሱን password ተጠቀም</div>
+        <button class="lock-btn" onclick="backToLogin()">← LOGIN</button>
+      </div>
+
+      <!-- Cancel -->
+      <div id="lCancelRow">
+        <button onclick="backToLogin()"
+          style="width:100%;margin-top:12px;background:transparent;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;font-family:'Outfit',sans-serif;">
+          ← Login ተመለስ
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ SETTINGS PASSWORD MODAL (Bot Win Percent & Change PW) ═══ -->
+<div id="settingsPwModal">
+  <div class="settings-pw-box">
+    <div class="settings-pw-icon">🔑</div>
+    <div class="settings-pw-title">SETTINGS LOCK</div>
+    <div class="settings-pw-sub" id="settingsPwSub">Settings password ያስገቡ</div>
+    <input id="settingsPwInput" class="settings-pw-inp" type="password"
+      placeholder="••••••" maxlength="20"
+      onkeydown="if(event.key==='Enter')checkSettingsPw()">
+    <button class="settings-pw-btn" onclick="checkSettingsPw()">🔓 UNLOCK</button>
+    <button class="settings-pw-cancel" onclick="closeSettingsPwModal()">❌ Cancel</button>
+    <div class="settings-pw-err" id="settingsPwErr"></div>
+  </div>
+</div>
+<!-- BINGO CONTENT -->
+<div id="bingoContent" style="display:none;width:100%;">
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">BINGO</div>
+  <div class="stats-row">
+    <div class="round-badge">Round <span class="round-num" id="roundNum">1</span></div>
+    <div class="badge">👥 <span class="val" id="topPlayers">0</span></div>
+    <div class="badge">🎟 <span class="val" id="topCards">0</span></div>
+    <div class="badge">💰 <span class="val" id="topPrize">0</span> ብር</div>
+  </div>
+  <button class="gear-btn" onclick="openSettingsPwModal('settings')" title="Settings">⚙️</button>
+</div>
+
+<!-- ═══ SETTINGS DRAWER ═══ -->
+<div id="settingsDrawer" style="
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;
+" onclick="if(event.target===this)closeSettingsDrawer()">
+
+  <div id="settingsPanel" style="
+    position:relative;width:92%;max-width:420px;max-height:88vh;
+    background:#0f1520;border:1px solid #1e2a40;border-radius:20px;
+    overflow-y:auto;padding:0 0 40px;
+    transform:scale(0.85);opacity:0;
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s ease;
+  ">
+    <!-- Header -->
+    <div style="
+      position:sticky;top:0;z-index:10;
+      background:#0f1520;border-bottom:1px solid #1e2a40;
+      padding:16px 18px;display:flex;align-items:center;justify-content:space-between;
+    ">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:4px;color:var(--gold);">⚙️ SETTINGS</div>
+      <button onclick="closeSettingsDrawer()" style="
+        background:#141c2e;border:1px solid #1e2a40;color:#5a6a8a;
+        width:34px;height:34px;border-radius:50%;font-size:1.2rem;cursor:pointer;
+      ">✕</button>
+    </div>
+
+    <div style="padding:16px 18px;">
+
+      <!-- ── SMART BOT CONTROL ── -->
+      <div style="
+        background:#141c2e;border:1px solid var(--purple);
+        border-radius:14px;padding:16px;margin-bottom:12px;
+      ">
+        <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+          🤖 Smart Bot Control
+          <span style="flex:1;height:1px;background:#1e2a40;display:block;"></span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-weight:700;font-size:1rem;" id="smartBotLabel">⭕ Bot OFF</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:3px;">Server bot engine ያብራ/ያጥፋ</div>
+          </div>
+          <label style="position:relative;width:64px;height:32px;cursor:pointer;flex-shrink:0;">
+            <input type="checkbox" id="smartBotToggle" onchange="toggleSmartBot(this.checked)" style="opacity:0;width:0;height:0;">
+            <span id="smartBotSlider" style="position:absolute;inset:0;background:#1e2a40;border-radius:16px;transition:.3s;">
+              <span id="smartBotThumb" style="position:absolute;width:26px;height:26px;left:3px;bottom:3px;background:var(--muted);border-radius:50%;transition:.3s;"></span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── BOT WIN PERCENT (LOCKED) ── -->
+      <div style="
+        background:#141c2e;border:1px solid var(--gold);
+        border-radius:14px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;
+      " id="botWinSection">
+        <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+          🎯 Bot Win Percent
+          <span style="flex:1;height:1px;background:#1e2a40;display:block;"></span>
+        </div>
+
+        <!-- LOCKED OVERLAY -->
+        <div class="bot-win-locked-overlay" id="botWinLockedOverlay" onclick="openSettingsPwModal('botWin')">
+          <div class="bot-win-lock-icon">🔒</div>
+          <div class="bot-win-lock-text">LOCKED</div>
+          <div class="bot-win-lock-hint">Settings password ያስፈልጋል</div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div style="font-weight:700;font-size:1rem;" id="botWinLabel">⭕ Bot Win OFF</div>
+            <div style="font-size:0.75rem;color:var(--muted);margin-top:3px;">Percent system ያብራ/ያጥፋ</div>
+          </div>
+          <label style="position:relative;width:64px;height:32px;cursor:pointer;flex-shrink:0;">
+            <input type="checkbox" id="botWinToggle" onchange="toggleBotWin(this.checked)" style="opacity:0;width:0;height:0;">
+            <span id="botWinSliderTrack" style="position:absolute;inset:0;background:#1e2a40;border-radius:16px;transition:.3s;">
+              <span id="botWinThumb" style="position:absolute;width:26px;height:26px;left:3px;bottom:3px;background:var(--muted);border-radius:50%;transition:.3s;"></span>
+            </span>
+          </label>
+        </div>
+        <div id="botWinContent" style="display:none;">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+            <input type="range" min="0" max="100" value="50"
+              style="flex:1;accent-color:var(--gold);"
+              id="botWinSlider"
+              oninput="document.getElementById('botWinVal').textContent=this.value+'%'">
+            <span id="botWinVal" style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold);min-width:60px;">50%</span>
+          </div>
+          <button class="btn btn-gold" onclick="saveBotWinPercent()">💾 Save</button>
+        </div>
+        <div id="botWinRelockRow" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+          <button onclick="lockBotWin()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:8px;font-size:0.78rem;cursor:pointer;font-family:'Outfit',sans-serif;">
+            🔒 Lock Again
+          </button>
+        </div>
+      </div>
+
+      <!-- ── PASSWORD SETTINGS ── -->
+      <div style="
+        background:#141c2e;border:1px solid var(--cyan);
+        border-radius:14px;padding:16px;margin-bottom:12px;
+      ">
+        <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          🔑 Password Settings
+          <span style="flex:1;height:1px;background:#1e2a40;display:block;"></span>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">
+          Login ወይም Settings password ለመቀየር — Settings password ያስፈልጋል።
+        </div>
+
+        <!-- Collapsed: just a button -->
+        <div id="pwSettingsCollapsed">
+          <button onclick="openSettingsPwModal('changePw')" style="
+            width:100%;background:linear-gradient(135deg,#001830,#000d20);
+            border:1px solid var(--cyan);color:var(--cyan);
+            padding:12px;border-radius:12px;font-family:'Outfit',sans-serif;
+            font-weight:700;font-size:0.9rem;cursor:pointer;
+          ">🔑 Change Password</button>
+        </div>
+
+        <!-- Expanded: phone-style steps (shown after settings pw) -->
+        <div class="change-pw-section" id="changePwSection">
+          <div style="font-size:0.7rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;">🔑 Change Password</div>
+
+          <div id="pwTypeSelect" style="margin-bottom:14px;">
+            <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">የትኛውን password ለመቀየር?</div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="startChangePw('login')" style="flex:1;background:#0a0f1c;border:2px solid var(--cyan);color:var(--cyan);padding:12px;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                🔐 Login PW
+              </button>
+              <button onclick="startChangePw('settings')" style="flex:1;background:#0a0f1c;border:2px solid var(--gold);color:var(--gold);padding:12px;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                ⚙️ Settings PW
+              </button>
+            </div>
+          </div>
+
+          <div id="pwStepFlow" style="display:none;">
+            <div class="pw-steps">
+              <div class="pw-step-dot active" id="stepDot1">1️⃣ ያሁኑ</div>
+              <div class="pw-step-dot" id="stepDot2">2️⃣ አዲስ</div>
+              <div class="pw-step-dot" id="stepDot3">3️⃣ ያረጋግጥ</div>
+            </div>
+            <div id="pwStep1">
+              <div class="pw-field-wrap">
+                <div class="pw-field-label">ያሁኑ Password</div>
+                <input class="pw-field-inp" id="pwCurrent" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')pwNext1()">
+              </div>
+              <div class="pw-err-msg" id="pwErr1"></div>
+              <button class="pw-next-btn" onclick="pwNext1()">ቀጥል →</button>
+              <button class="pw-back-btn" onclick="resetPwFlow()">← ተመለስ</button>
+            </div>
+            <div id="pwStep2" style="display:none;">
+              <div class="pw-field-wrap">
+                <div class="pw-field-label">አዲስ Password</div>
+                <input class="pw-field-inp" id="pwNew" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')pwNext2()">
+              </div>
+              <div class="pw-err-msg" id="pwErr2"></div>
+              <button class="pw-next-btn" onclick="pwNext2()">ቀጥል →</button>
+              <button class="pw-back-btn" onclick="goToStep(1)">← ተመለስ</button>
+            </div>
+            <div id="pwStep3" style="display:none;">
+              <div class="pw-field-wrap">
+                <div class="pw-field-label">አዲሱን ያረጋግጥ</div>
+                <input class="pw-field-inp" id="pwConfirm" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')pwSave()">
+              </div>
+              <div class="pw-err-msg" id="pwErr3"></div>
+              <button class="pw-next-btn" onclick="pwSave()">💾 SAVE</button>
+              <button class="pw-back-btn" onclick="goToStep(2)">← ተመለስ</button>
+            </div>
+            <div id="pwSuccess" style="display:none;">
+              <div class="pw-success-box">
+                <div class="pw-success-icon">✅</div>
+                <div class="pw-success-text">Password ተቀይሯል!</div>
+                <div style="color:var(--muted);font-size:0.78rem;margin-top:6px;">ቀጣዩ login አዲሱን password ተጠቀም</div>
+              </div>
+              <button class="pw-next-btn" style="margin-top:12px;" onclick="resetPwFlow()">↩ Done</button>
+            </div>
+          </div>
+
+          <button onclick="lockChangePw()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:8px;font-size:0.78rem;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:10px;">
+            🔒 Lock Settings
+          </button>
+        </div>
+
+      </div><!-- /password settings card -->
+    </div><!-- /padding -->
+  </div><!-- /panel -->
+</div><!-- /drawer -->
+
+<div class="main">
+
+<!-- ══ AUTO MODE ══ -->
+<div class="auto-mode-box" id="autoModeBox">
+  <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleAutoSection()">
+    <div class="auto-mode-title" id="autoModeTitle">🤖 AUTO MODE</div>
+    <span id="autoCollapseIcon" style="font-size:1.4rem;color:var(--cyan);">▲</span>
+  </div>
+  
+  <div id="autoModeContent">
+    <div class="auto-mode-desc">Time ምረጥ — game እራሱ ይጀምራል, ይጫወታል, አሸናፊ ያወጃል, ደሞ ያስጀምራል!</div>
+
+    <div style="font-size:0.7rem;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;margin-bottom:8px;">⏱ Between-game Countdown</div>
+    <div class="cd-btn-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="cd-btn active" id="cdBtn1" onclick="selectAutoCd(1,this)">1 MIN</div>
+      <div class="cd-btn" id="cdBtn2" onclick="selectAutoCd(2,this)">2 MIN</div>
+      <div class="cd-btn" id="cdBtn3" onclick="selectAutoCd(3,this)">3 MIN</div>
+      <div class="cd-btn" id="cdBtn4" onclick="selectAutoCd(4,this)">4 MIN</div>
+      <div class="cd-btn" id="cdBtn5" onclick="selectAutoCd(5,this)">5 MIN</div>
+      <div class="cd-btn" id="cdBtn6" onclick="selectAutoCd(6,this)">6 MIN</div>
+      <div class="cd-btn" id="cdBtn7" onclick="selectAutoCd(7,this)">7 MIN</div>
+    </div>
+
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+      ✅ Saved: <b style="color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:1.1rem;" id="savedCdLabel">—</b> <span style="color:var(--muted)">ደቂቃ</span>
+    </div>
+    <div class="call-speed-row">
+      <label>Number call speed:</label>
+      <select id="autoCallSpeed">
+  <option value="1000">1 sec</option>
+  <option value="2000">2 sec</option>
+  <option value="3000">3 sec</option>
+  <option value="4000" selected>4 sec</option>
+  <option value="5000">5 sec</option>
+</select>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:10px;">
+      <button class="btn btn-green" style="flex:1;padding:12px;" id="startAutoBtn" onclick="startAutoMode()">🚀 START AUTO MODE</button>
+      <button class="btn btn-red" style="flex:1;padding:12px;display:none;" id="stopAutoBtn" onclick="stopAutoMode()">⏹ STOP AUTO</button>
+    </div>
+
+    <div class="auto-status-row" id="autoStatusRow" style="display:none;">
+      <div style="flex:1;">
+        <div class="auto-phase-label">Current Phase</div>
+        <div class="auto-phase-val" id="autoPhaseVal">—</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;" id="autoPhaseDesc">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="auto-cd-lbl">Time</div>
+        <div class="auto-cd-val" id="autoCdVal">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ GAME STATUS ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('gameStatus','gameStatusIcon')">
+    <div class="sec-title" style="margin-bottom:0;">⚡ Game Status</div>
+    <span id="gameStatusIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="gameStatus" class="collapse-body" style="display:none;">
+    <div class="stat-grid" style="margin-top:12px;">
+      <div class="stat-box"><div class="stat-val" id="statCalled">0</div><div class="stat-lbl">Called</div></div>
+      <div class="stat-box"><div class="stat-val" id="statRemain">75</div><div class="stat-lbl">Remaining</div></div>
+      <div class="stat-box"><div class="stat-val" id="statPlayers">0</div><div class="stat-lbl">Players</div></div>
+    </div>
+    <div class="player-count-section">
+      <div class="player-count-label">Live Player Count</div>
+      <div class="player-count-display">
+        <div class="player-count-num" id="livePlayerCount">0</div>
+        <div class="player-count-info">
+          👤 Real: <span id="realCount">0</span><br>
+          🎭 Total: <span id="botCountDisplay">0</span>
+        </div>
+      </div>
+    </div>
+    <div><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">⏹ WAITING</span></div>
+    <div class="big-num-wrap" style="padding:10px 0 0;">
+      <div style="font-size:0.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;">Current Number</div>
+      <div class="big-num" id="bigNum">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BET SETUP ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('betSetup','betSetupIcon')">
+    <div class="sec-title" style="margin-bottom:0;">💸 Bet &amp; Prize Setup</div>
+    <span id="betSetupIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="betSetup" class="collapse-body" style="display:none;">
+    <div class="input-row" style="margin-top:12px;">
+      <input class="inp" id="betInput" type="number" placeholder="Bet amount (ብር)">
+      <input class="inp" id="percentInput" type="number" placeholder="Prize % (e.g. 80)">
+    </div>
+    <button class="btn btn-green" onclick="saveBet()">✅ Save Bet Settings</button>
+    <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;">
+      <span style="font-size:0.85rem;color:var(--muted)">Bet: <b style="color:var(--gold)" id="currentBet">0</b> ብር</span>
+      <span style="font-size:0.85rem;color:var(--muted)">Prize Pool: <b style="color:var(--green)" id="currentPrize">0</b> ብር</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CALLED NUMBERS ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('calledNums','calledNumsIcon')">
+    <div class="sec-title" style="margin-bottom:0;">🎱 Called Numbers</div>
+    <span id="calledNumsIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="calledNums" class="collapse-body" style="display:none;">
+    <div class="balls-wrap" id="ballsWrap" style="margin-top:10px;"><div class="empty">No numbers called yet</div></div>
+  </div>
+</div>
+
+<!-- ══ BOTS (Manual) ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('botsSection','botsSectionIcon')">
+    <div class="sec-title" style="margin-bottom:0;">🎭 Fake Players (Manual Bots)</div>
+    <span id="botsSectionIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="botsSection" class="collapse-body" style="display:none;">
+    <div class="bot-count-row" style="margin-top:12px;">
+      <div class="bot-count-input-wrap">
+        <input type="number" class="bot-count-input" id="botCountInput" value="50" min="1" max="100">
+        <div class="bot-count-lbl">Bots</div>
+      </div>
+      <input type="range" min="1" max="100" value="50" style="flex:1;accent-color:var(--purple);" id="botSlider"
+        oninput="document.getElementById('botCountInput').value=this.value">
+    </div>
+    <div class="btn-row" style="margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn btn-green" style="flex:1;padding:10px;" onclick="addBots()">🎭 Add Bots</button>
+      <button class="btn btn-red" style="flex:1;padding:10px;" onclick="removeBots()">🗑 Remove All</button>
+    </div>
+    <div id="botGrid" class="bot-grid"></div>
+  </div>
+</div>
+
+<!-- ══ PLAYERS ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('playersSection','playersSectionIcon')">
+    <div class="sec-title" style="margin-bottom:0;">👥 Players (Live)</div>
+    <span id="playersSectionIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="playersSection" class="collapse-body" style="display:none;">
+    <div id="playersList" style="margin-top:10px;"><div class="empty">No players yet</div></div>
+  </div>
+</div>
+
+<!-- ══ PAYMENTS & WITHDRAWALS ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('wdContent','wdCollapseIcon')">
+    <div class="sec-title" style="margin-bottom:0;">💳 Payments &amp; Withdrawals <span class="count-badge" id="withdrawCountHeader" style="display:none">0</span></div>
+    <span id="wdCollapseIcon" class="collapse-icon">▲</span>
+  </div>
+  <div id="wdContent" class="collapse-body" style="display:block;margin-top:14px;">
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabBtnWithdraw" onclick="switchTab('withdraw')">
+        🏧 Withdrawals <span class="count-badge" id="withdrawCount" style="display:none">0</span>
+      </button>
+    </div>
+    <div class="tab-pane active" id="tabWithdraw">
+      <div id="withdrawalsList"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+</div>
+<!-- ══ ACCOUNT SETTINGS ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('acctSection','acctSectionIcon')">
+    <div class="sec-title" style="margin-bottom:0;">🏦 Payment Accounts</div>
+    <span id="acctSectionIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="acctSection" class="collapse-body" style="display:none;">
+    <div class="input-row" style="margin-top:12px;">
+      <input class="inp" id="cbeInput" placeholder="CBE Account (13 digit)">
+    </div>
+    <button class="btn btn-green" style="margin-bottom:12px;" onclick="saveCBE()">✅ Save CBE</button>
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:12px;">
+      CBE: <b style="color:var(--gold)" id="currentCBE">Loading...</b>
+    </div>
+    <div class="input-row">
+      <input class="inp" id="telebirrInput" placeholder="Telebirr (10 digit)">
+    </div>
+    <button class="btn btn-green" onclick="saveTelebirr()">✅ Save Telebirr</button>
+    <div style="font-size:0.85rem;color:var(--muted);margin-top:12px;">
+      Telebirr: <b style="color:var(--gold)" id="currentTelebirr">Loading...</b>
+    </div>
+  </div>
+</div>
+<!-- ══ GIVE BALANCE ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('giveBalSection','giveBalIcon')">
+    <div class="sec-title" style="margin-bottom:0;">🎁 Give Balance</div>
+    <span id="giveBalIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="giveBalSection" class="collapse-body" style="display:none;">
+    <div class="input-row" style="margin-top:12px;">
+      <input class="inp" id="giveUserId" placeholder="Telegram User ID">
+      <input class="inp" id="giveAmount" type="number" placeholder="Amount">
+    </div>
+    <button class="btn btn-green" onclick="giveBalance()">💰 Give Balance</button>
+  </div>
+</div>
+
+<!-- ══ ANALYTICS ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('analyticsSection','analyticsSectionIcon')">
+    <div class="sec-title" style="margin-bottom:0;">📊 Analytics</div>
+    <span id="analyticsSectionIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="analyticsSection" class="collapse-body" style="display:none;">
+    <div class="stat-grid" style="margin-top:12px;">
+      <div class="stat-box"><div class="stat-val" id="anTotalRounds">0</div><div class="stat-lbl">Rounds</div></div>
+      <div class="stat-box"><div class="stat-val" id="anTotalPaid">0</div><div class="stat-lbl">ብር Paid Out</div></div>
+      <div class="stat-box"><div class="stat-val" id="anTotalCollected">0</div><div class="stat-lbl">ብር Collected</div></div>
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;">
+      <span style="font-size:0.82rem;color:var(--muted)">Profit: <b style="color:var(--green)" id="anProfit">0</b> ብር</span>
+      <span style="font-size:0.82rem;color:var(--muted)">🎮 Game Profit: <b style="color:var(--gold)" id="anGameProfit">0</b> ብር</span>
+      <span style="font-size:0.82rem;color:var(--muted)">🎭 Bot Win: <b style="color:var(--purple)" id="anBotProfit">0</b> ብር</span>
+      <span style="font-size:0.82rem;color:var(--muted)">Avg Players/Round: <b style="color:var(--cyan)" id="anAvgPlayers">0</b></span>
+      <span style="font-size:0.82rem;color:var(--muted)">Total Deposits: <b style="color:var(--gold)" id="anTotalDeposits">0</b> ብር</span>
+      <span style="font-size:0.82rem;color:var(--muted)">Total Withdrawals: <b style="color:var(--red)" id="anTotalWithdrawals">0</b> ብར</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAILY HISTORY ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('dailyHistSection','dailyHistIcon')">
+    <div class="sec-title" style="margin-bottom:0;">📅 Daily History</div>
+    <span id="dailyHistIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="dailyHistSection" class="collapse-body" style="display:none;">
+    <div id="dailyHistoryList" style="margin-top:10px;"><div class="empty">Loading...</div></div>
+  </div>
+</div>
+
+<!-- ══ WINNER HISTORY ══ -->
+<div class="section">
+  <div class="collapse-header" onclick="toggleSection('winnerSection','winnerSectionIcon')">
+    <div class="sec-title" style="margin-bottom:0;">🏆 Winner History</div>
+    <span id="winnerSectionIcon" class="collapse-icon">▼</span>
+  </div>
+  <div id="winnerSection" class="collapse-body" style="display:none;">
+    <div id="winnerList" style="margin-top:10px;"><div class="empty">No winners yet</div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /bingoContent -->
+
+<!-- AGENT CONTENT -->
+<div id="agentContent" style="display:none;width:100%;max-width:700px;margin:0 auto;padding:40px 20px 60px;">
+
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:4px;color:var(--gold);margin-bottom:4px;">🤖 AGENT PANEL</div>
+  <div style="font-size:0.72rem;color:var(--muted);letter-spacing:3px;margin-bottom:24px;">// WITHDRAW MANAGER</div>
+
+  <!-- LOGOUT -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap;">
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.3);border-radius:20px;padding:6px 14px;font-size:0.7rem;color:var(--green);letter-spacing:2px;">
+      <div style="width:6px;height:6px;background:var(--green);border-radius:50%;animation:dotPulse 1s infinite;"></div>LIVE
+    </div>
+    <button onclick="doAgentLogout()" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 14px;font-family:'Outfit',sans-serif;font-size:0.78rem;cursor:pointer;margin-left:auto;">↩ LOGOUT</button>
+  </div>
+
+  <!-- OVERALL STATS -->
+  <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    📊 Overall Stats (7 ቀን)
+    <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+  </div>
+  <div class="ag-stat-grid" style="margin-bottom:24px;">
+    <div class="ag-stat-box">
+      <div class="ag-stat-val" id="ovTotalAmt">—</div>
+      <div class="ag-stat-lbl">Total Paid</div>
+      <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;" id="ovTotalCnt">— ጊዜ</div>
+    </div>
+    <div class="ag-stat-box">
+      <div class="ag-stat-val" id="ovTodayAmt">—</div>
+      <div class="ag-stat-lbl">ዛሬ Paid</div>
+      <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;" id="ovTodayCnt">— ጊዜ</div>
+    </div>
+    <div class="ag-stat-box">
+      <div class="ag-stat-val" id="ovRejAmt" style="color:var(--red);">—</div>
+      <div class="ag-stat-lbl">Rejected</div>
+      <div style="font-size:0.62rem;color:var(--muted);margin-top:2px;" id="ovRejCnt">— ጊዜ</div>
+    </div>
+  </div>
+
+  <!-- PENDING -->
+  <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    ⏳ Pending Requests
+    <span class="count-badge" id="agentPendingBadge" style="display:none;">0</span>
+    <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+  </div>
+  <div id="agentPendingList" style="margin-bottom:24px;">
+    <div class="empty">Loading...</div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.15),transparent);margin:20px 0;"></div>
+
+  <!-- AGENT PASSWORD -->
+  <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    🔑 Agent Password
+    <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+    <input class="add-inp" id="newAgentPass" placeholder="አዲስ Password ያስገቡ">
+    <button class="add-btn-ag" onclick="changeAgentPass()">💾 SAVE</button>
+  </div>
+
+  <!-- DIVIDER -->
+  <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.15),transparent);margin:20px 0;"></div>
+
+  <!-- ADD AGENT -->
+  <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    ➕ Agent መጨመር
+    <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+    <input class="add-inp" id="newAgentName" placeholder="Agent ስም">
+    <input class="add-inp" id="newAgentId" placeholder="የግል ቁጥር (ID Number)">
+    <button class="add-btn-ag" onclick="addAgent()">⚡ ADD</button>
+  </div>
+
+  <!-- DIVIDER -->
+  <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.15),transparent);margin:20px 0;"></div>
+
+  <!-- AGENTS LIST -->
+  <div style="font-size:0.65rem;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    🤖 Agents
+    <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+  </div>
+  <div id="agentsList">
+    <div class="empty">Loading...</div>
+  </div>
+
+</div><!-- /agentContent -->
+<!-- PROMOTION CONTENT -->
+<div id="promotionContent" style="display:none;width:100%;max-width:500px;margin:0 auto;padding:30px 16px 60px;">
+
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:4px;color:var(--gold);margin-bottom:4px;">📢 PROMOTION</div>
+  <div style="font-size:0.72rem;color:var(--muted);letter-spacing:3px;margin-bottom:24px;">// BROADCAST MANAGER</div>
+
+  <!-- Target -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:0.7rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">📤 ወዴት ይላካል?</div>
+    <div style="display:flex;gap:8px;">
+      <button id="targetBotBtn" onclick="setPromoTarget('bot')"
+        style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--gold);background:var(--gold);color:#080c14;font-family:'Outfit',sans-serif;font-weight:700;cursor:pointer;">
+        🤖 Bot Users
+      </button>
+      <button id="targetGroupBtn" onclick="setPromoTarget('group')"
+        style="flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:700;cursor:pointer;">
+        👥 Group
+      </button>
+    </div>
+  </div>
+
+  <!-- Group ID -->
+  <div id="groupIdRow" style="display:none;margin-bottom:16px;">
+    <div style="font-size:0.7rem;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">GROUP ID:</div>
+    <input class="inp" id="promoGroupId" placeholder="-1001234567890" style="width:100%;">
+  </div>
+
+  <!-- Photo Upload (አሁን ላክ ብቻ) -->
+  <div style="margin-bottom:12px;">
+    <div style="font-size:0.7rem;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">🖼 PHOTO (አሁን ላክ ብቻ — optional):</div>
+    <input type="file" id="promoPhotoFile" accept="image/*" class="inp" style="width:100%;padding:8px;">
+    <div id="promoPhotoPreview" style="display:none;margin-top:8px;">
+      <img id="promoPhotoImg" style="width:100%;max-height:200px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">
+    </div>
+  </div>
+
+  <!-- Text -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:0.7rem;color:var(--muted);letter-spacing:2px;margin-bottom:6px;">✍️ MESSAGE:</div>
+    <textarea class="inp" id="promoText" placeholder="ማስታወቂያ ጹፍ..."
+      style="width:100%;min-height:120px;resize:vertical;"></textarea>
+  </div>
+
+  <!-- Gap Time (interval) -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:0.7rem;color:var(--muted);letter-spacing:2px;margin-bottom:8px;">⏱ GAP TIME (ስንት ሰዓት አንዴ?):</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+  <input type="number" id="intervalInput" min="1" value="60"
+    oninput="updateIntervalLabel()"
+    style="width:100px;background:#0a0f1c;border:2px solid var(--gold);color:var(--gold);padding:10px 14px;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;outline:none;text-align:center;">
+  <div style="display:flex;gap:6px;">
+    <button class="interval-btn active" id="unitMin" onclick="setUnit('min',this)">ደቂቃ</button>
+    <button class="interval-btn" id="unitHour" onclick="setUnit('hour',this)">ሰዓት</button>
+  </div>
+</div>
+<div style="font-size:0.78rem;color:var(--muted);">
+  በየ <b style="color:var(--gold);" id="selectedIntervalLabel">60 ደቂቃ</b> ይላካል
+</div>
+  </div>
+
+  <!-- Buttons -->
+  <button class="btn btn-gold" onclick="startIntervalPromotion()" style="width:100%;padding:16px;font-size:1.1rem;margin-bottom:8px;">
+    🔁 Start Interval Promotion
+  </button>
+  <button class="btn btn-green" onclick="sendNow()" style="width:100%;padding:16px;font-size:1.1rem;margin-bottom:8px;">
+    🚀 አሁን ላክ
+  </button>
+
+  <!-- Active Promotion Status -->
+  <div id="activePromoStatus" style="display:none;background:linear-gradient(135deg,#001a08,#000d20);border:2px solid var(--green);border-radius:14px;padding:16px;margin-bottom:12px;">
+    <div style="font-size:0.65rem;letter-spacing:3px;color:var(--green);text-transform:uppercase;margin-bottom:10px;">🟢 ACTIVE PROMOTION</div>
+    <div style="font-size:0.85rem;color:var(--text);margin-bottom:6px;" id="activePromoText">—</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:4px;">Gap: <b style="color:var(--gold);" id="activePromoInterval">—</b></div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:12px;">Next send: <b style="color:var(--cyan);" id="activePromoNext">—</b></div>
+    <button onclick="stopIntervalPromotion()" style="width:100%;background:var(--red);color:white;padding:12px;border-radius:10px;border:none;font-family:'Outfit',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">
+      ⏹ Stop Promotion
+    </button>
+  </div>
+
+  <!-- Scheduled List -->
+  <div style="font-size:0.7rem;color:var(--muted);letter-spacing:2px;margin-bottom:10px;margin-top:8px;">📋 ACTIVE PROMOTIONS:</div>
+  <div id="promoList"><div class="empty">ምንም active promotion የለም</div></div>
+
+  <!-- Back -->
+  <button onclick="backToPromoSelect()"
+    style="margin-top:20px;background:transparent;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;font-family:'Outfit',sans-serif;">
+    ← ተመለስ
+  </button>
+</div>
+<!-- Image modal -->
+<div class="modal-overlay" id="imgModal" onclick="this.classList.remove('open')">
+  <img id="imgFull" src="" style="max-width:90%;max-height:90vh;border-radius:16px;">
+</div>
+
+<script>
+const SERVER = 'https://admin-panel-production-b31a.up.railway.app';
+
+let ADMIN_PASSWORD = '1234';
+let SETTINGS_PASSWORD = '9999';
+
+async function loadPasswords(){
+  try {
+    const res = await fetch(SERVER+'/get-config');
+    const data = await res.json();
+    if(data.loginPassword) ADMIN_PASSWORD = data.loginPassword;
+    if(data.settingsPassword) SETTINGS_PASSWORD = data.settingsPassword;
+  } catch(e){}
+}
+loadPasswords();
+
+async function apiGet(path) {
+  try {
+    const res = await fetch(SERVER + '/game-state');
+    const d = await res.json();
+    if (!path) return d;
+    const keys = path.split('/');
+    let obj = d;
+    for (let k of keys) {
+      if (obj == null) return null;
+      // "game" top-level key check
+      obj = obj[k];
+    }
+    return obj ?? null;
+  } catch(e) { return null; }
+}
+
+async function apiSet(path, value){
+  try {
+    await fetch(SERVER+'/set-state',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({key:path,value})
+    });
+  } catch(e){}
+}
+
+function onVal(path, cb){
+  (async()=>{ cb(await apiGet(path)); })();
+  return setInterval(async()=>{ cb(await apiGet(path)); }, 3000);
+}
+
+// ══ PANEL SELECT ══
+let selectedPanel = '';
+let panelLockEnabled = localStorage.getItem('panelLock') === '1';
+
+function updateLockUI(){
+  const btn = document.getElementById('lockToggleBtn');
+  const status = document.getElementById('lockStatus');
+  if(panelLockEnabled){
+    status.textContent = '🔒 Lock ON — Password ያስፈልጋል';
+    status.style.color = 'var(--gold)';
+    btn.textContent = '🔓 Lock አጥፋ';
+    btn.style.borderColor = 'var(--gold)';
+    btn.style.color = 'var(--gold)';
+  } else {
+    status.textContent = '🔓 Lock OFF — ቀጥታ ይገባል';
+    status.style.color = 'var(--muted)';
+    btn.textContent = '🔒 Lock ያድርጉ';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted)';
+  }
+}
+updateLockUI();
+
+window.togglePanelLock = function(){
+  if(!panelLockEnabled){
+    // Lock ሲያብሩ password ያስፈልጋል
+    const pw = prompt('🔒 Lock password ያስገቡ:');
+    if(!pw) return;
+    if(pw !== ADMIN_PASSWORD){
+      alert('❌ Password ትክክል አይደለም!');
+      return;
+    }
+    panelLockEnabled = true;
+    localStorage.setItem('panelLock','1');
+  } else {
+    // Lock ሲያጠፉ password ያስፈልጋል
+    const pw = prompt('🔓 Password ያስገቡ ለማጥፋት:');
+    if(!pw) return;
+    if(pw !== ADMIN_PASSWORD){
+      alert('❌ Password ትክክል አይደለም!');
+      return;
+    }
+    panelLockEnabled = false;
+    localStorage.setItem('panelLock','0');
+  }
+  updateLockUI();
+};
+
+window.selectPanel = function(panel){
+  selectedPanel = panel;
+  if(panelLockEnabled){
+    // Lock ON — password ይጠይቃል
+    document.getElementById('panelSelectView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'block';
+    if(panel === 'bingo'){
+      document.getElementById('loginPanelTitle').textContent = 'BINGO';
+      document.getElementById('loginPanelSub').textContent = 'ADMIN PANEL';
+      document.getElementById('loginPanelIcon').textContent = '🎮';
+    } else {
+      document.getElementById('loginPanelTitle').textContent = 'AGENT';
+      document.getElementById('loginPanelSub').textContent = 'AGENT PANEL';
+      document.getElementById('loginPanelIcon').textContent = '🤖';
+    }
+    setTimeout(()=>document.getElementById('pwInput').focus(), 100);
+  } else {
+    // Lock OFF — ቀጥታ ይገባል
+    document.getElementById('lockScreen').style.display = 'none';
+    sessionStorage.setItem('adminAuth', panel);
+localStorage.setItem('adminAuth', panel);
+    if(panel === 'bingo') showBingoPanel();
+    else showAgentPanel();
+  }
+};
+
+window.backToPanelSelect = function(){
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('panelSelectView').style.display = 'block';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').textContent = '';
+  selectedPanel = '';
+};
+
+// ══ MAIN LOGIN ══
+window.checkPassword = function(){
+  const val = document.getElementById('pwInput').value;
+  if(val === ADMIN_PASSWORD){
+    document.getElementById('lockScreen').style.display = 'none';
+    sessionStorage.setItem('adminAuth', selectedPanel);
+    if(selectedPanel === 'bingo') showBingoPanel();
+    else showAgentPanel();
+  } else {
+    document.getElementById('pwError').textContent = '❌ Password ትክክል አይደለም!';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
+};
+
+// ══ PANEL SHOW/HIDE ══
+function showBingoPanel(){
+  document.getElementById('bingoContent').style.display = 'block';
+  document.getElementById('agentContent').style.display = 'none';
+}
+function showAgentPanel(){
+  document.getElementById('bingoContent').style.display = 'none';
+  document.getElementById('agentContent').style.display = 'block';
+}
+
+// ══ AUTO LOGIN ══
+const savedAuth = sessionStorage.getItem('adminAuth');
+if(savedAuth === 'bingo'){
+  document.getElementById('lockScreen').style.display = 'none';
+  showBingoPanel();
+} else if(savedAuth === 'agent'){
+  document.getElementById('lockScreen').style.display = 'none';
+  showAgentPanel();
+} else if(!panelLockEnabled){
+  // Lock OFF ከሆነ — lockScreen ይታያል ግን password አያስፈልግም
+}
+
+
+// ══ LOGIN SCREEN — CHANGE PASSWORD ══
+window.showLoginChangePw = function(){
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('loginChangePwView').style.display = 'block';
+  document.getElementById('lCurrent').value = '';
+  document.getElementById('lNew').value = '';
+  document.getElementById('lConfirm').value = '';
+  document.getElementById('lErr1').textContent = '';
+  document.getElementById('lErr2').textContent = '';
+  document.getElementById('lErr3').textContent = '';
+  document.getElementById('lSuccess').style.display = 'none';
+  document.getElementById('lCancelRow').style.display = 'block';
+  lGoStep(1);
+  setTimeout(()=>document.getElementById('lCurrent').focus(), 100);
+};
+window.doAgentLogout = function(){
+  sessionStorage.removeItem('adminAuth');
+  document.getElementById('agentContent').style.display = 'none';
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.getElementById('panelSelectView').style.display = 'block';
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('pwInput').value = '';
+  selectedPanel = '';
+};
+window.backToLogin = function(){
+  document.getElementById('loginChangePwView').style.display = 'none';
+  document.getElementById('loginView').style.display = 'block';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').textContent = '';
+  setTimeout(()=>document.getElementById('pwInput').focus(), 100);
+};
+
+window.lGoStep = function(n){
+  [1,2,3].forEach(i => {
+    document.getElementById('lStep'+i).style.display = i===n ? 'block' : 'none';
+    const dot = document.getElementById('lDot'+i);
+    if(i < n){
+      dot.style.background = 'var(--green)';
+      dot.style.color = '#080c14';
+    } else if(i === n){
+      dot.style.background = 'var(--gold)';
+      dot.style.color = '#080c14';
+      dot.style.fontWeight = '700';
+    } else {
+      dot.style.background = '#1e2a40';
+      dot.style.color = 'var(--muted)';
+      dot.style.fontWeight = 'normal';
+    }
+  });
+  document.getElementById('lSuccess').style.display = 'none';
+  setTimeout(()=>{
+    const inputs = ['','lCurrent','lNew','lConfirm'];
+    const el = document.getElementById(inputs[n]);
+    if(el) el.focus();
+  }, 100);
+};
+
+window.lNext1 = function(){
+  const val = document.getElementById('lCurrent').value;
+  if(val === ADMIN_PASSWORD){
+    document.getElementById('lCurrent').style.borderColor = 'var(--green)';
+    document.getElementById('lErr1').textContent = '';
+    lGoStep(2);
+  } else {
+    document.getElementById('lCurrent').style.borderColor = 'var(--red)';
+    document.getElementById('lErr1').textContent = '❌ Password ትክክል አይደለም!';
+    document.getElementById('lCurrent').value = '';
+    setTimeout(()=>{ document.getElementById('lCurrent').style.borderColor=''; }, 800);
+  }
+};
+
+window.lNext2 = function(){
+  const val = document.getElementById('lNew').value;
+  if(!val || val.length < 3){
+    document.getElementById('lNew').style.borderColor = 'var(--red)';
+    document.getElementById('lErr2').textContent = '❌ ቢያንስ 3 characters ያስፈልጋል!';
+    setTimeout(()=>{ document.getElementById('lNew').style.borderColor=''; }, 800);
+    return;
+  }
+  document.getElementById('lNew').style.borderColor = 'var(--green)';
+  document.getElementById('lErr2').textContent = '';
+  lGoStep(3);
+};
+
+window.lSave = async function(){
+  const newPw = document.getElementById('lNew').value;
+  const confirm = document.getElementById('lConfirm').value;
+  if(newPw !== confirm){
+    document.getElementById('lConfirm').style.borderColor = 'var(--red)';
+    document.getElementById('lErr3').textContent = '❌ Password አይመሳሰልም!';
+    document.getElementById('lConfirm').value = '';
+    setTimeout(()=>{ document.getElementById('lConfirm').style.borderColor=''; }, 800);
+    return;
+  }
+  document.getElementById('lConfirm').style.borderColor = 'var(--green)';
+  await fetch(SERVER+'/save-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({loginPassword:newPw,settingsPassword:SETTINGS_PASSWORD})});
+ADMIN_PASSWORD = newPw;
+sessionStorage.setItem('adminAuth','1');
+  [1,2,3].forEach(i => document.getElementById('lStep'+i).style.display='none');
+  [1,2,3].forEach(i => {
+    const dot = document.getElementById('lDot'+i);
+    dot.style.background = 'var(--green)';
+    dot.style.color = '#080c14';
+  });
+  document.getElementById('lSuccess').style.display = 'block';
+  document.getElementById('lCancelRow').style.display = 'none';
+};
+
+// ══ SETTINGS DRAWER ══
+window.openSettingsDrawer = function(){
+  const drawer = document.getElementById('settingsDrawer');
+  drawer.style.display = 'flex';
+  const panel = document.getElementById('settingsPanel');
+  panel.style.transform = 'scale(0.85)';
+  panel.style.opacity = '0';
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      panel.style.transform = 'scale(1)';
+      panel.style.opacity = '1';
+    });
+  });
+};
+window.closeSettingsDrawer = function(){
+  const panel = document.getElementById('settingsPanel');
+  panel.style.transform = 'scale(0.85)';
+  panel.style.opacity = '0';
+  setTimeout(()=>{ document.getElementById('settingsDrawer').style.display='none'; }, 220);
+};
+
+// ══ SETTINGS PASSWORD MODAL ══
+let settingsPwTarget = '';
+
+window.openSettingsPwModal = function(target){
+  settingsPwTarget = target;
+  document.getElementById('settingsPwInput').value = '';
+  document.getElementById('settingsPwErr').textContent = '';
+  const sub = target === 'botWin'
+    ? '🎯 Bot Win Percent settings password ያስፈልጋል'
+    : '⚙️ Password Settings ለመቀፈት settings password ያስፈልጋል';
+  document.getElementById('settingsPwSub').textContent = sub;
+  document.getElementById('settingsPwModal').classList.add('open');
+  setTimeout(()=>document.getElementById('settingsPwInput').focus(),100);
+};
+
+window.closeSettingsPwModal = function(){
+  document.getElementById('settingsPwModal').classList.remove('open');
+  document.getElementById('settingsPwInput').value = '';
+  document.getElementById('settingsPwErr').textContent = '';
+};
+
+window.checkSettingsPw = function(){
+  const val = document.getElementById('settingsPwInput').value;
+  if(val === SETTINGS_PASSWORD){
+    closeSettingsPwModal();
+    if(settingsPwTarget === 'botWin') unlockBotWin();
+    else if(settingsPwTarget === 'changePw') openChangePwSection();
+    else if(settingsPwTarget === 'settings') openSettingsDrawer();
+  } else {
+    document.getElementById('settingsPwErr').textContent = '❌ Password ትክክል አይደለም!';
+    document.getElementById('settingsPwInput').value = '';
+    document.getElementById('settingsPwInput').focus();
+  }
+};
+
+// ══ BOT WIN PERCENT LOCK/UNLOCK ══
+function unlockBotWin(){
+  document.getElementById('botWinLockedOverlay').style.display = 'none';
+  document.getElementById('botWinRelockRow').style.display = 'block';
+}
+window.lockBotWin = function(){
+  document.getElementById('botWinLockedOverlay').style.display = 'flex';
+  document.getElementById('botWinRelockRow').style.display = 'none';
+};
+
+// ══ CHANGE PASSWORD SECTION ══
+function openChangePwSection(){
+  const col = document.getElementById('pwSettingsCollapsed');
+  if(col) col.style.display = 'none';
+  document.getElementById('changePwSection').classList.add('open');
+  resetPwFlow();
+}
+window.lockChangePw = function(){
+  document.getElementById('changePwSection').classList.remove('open');
+  const col = document.getElementById('pwSettingsCollapsed');
+  if(col) col.style.display = 'block';
+  resetPwFlow();
+};
+
+
+// ══ PHONE-STYLE PASSWORD CHANGE ══
+let pwChangeTarget = ''; // 'login' or 'settings'
+
+window.startChangePw = function(target){
+  pwChangeTarget = target;
+  document.getElementById('pwTypeSelect').style.display = 'none';
+  document.getElementById('pwStepFlow').style.display = 'block';
+  document.getElementById('pwCurrent').value = '';
+  document.getElementById('pwNew').value = '';
+  document.getElementById('pwConfirm').value = '';
+  document.getElementById('pwErr1').textContent = '';
+  document.getElementById('pwErr2').textContent = '';
+  document.getElementById('pwErr3').textContent = '';
+  goToStep(1);
+};
+
+window.goToStep = function(n){
+  [1,2,3].forEach(i => {
+    document.getElementById('pwStep'+i).style.display = i===n ? 'block' : 'none';
+    const dot = document.getElementById('stepDot'+i);
+    if(i < n){ dot.className='pw-step-dot done'; dot.textContent=['','1️⃣ ያሁኑ','2️⃣ አዲስ','3️⃣ ያረጋግጥ'][i]; }
+    else if(i === n){ dot.className='pw-step-dot active'; }
+    else { dot.className='pw-step-dot'; }
+  });
+  document.getElementById('pwSuccess').style.display = 'none';
+  // Focus
+  setTimeout(()=>{
+    const inp = document.getElementById(['','pwCurrent','pwNew','pwConfirm'][n]);
+    if(inp) inp.focus();
+  },100);
+};
+
+window.pwNext1 = function(){
+  const val = document.getElementById('pwCurrent').value;
+  const correct = pwChangeTarget === 'login' ? ADMIN_PASSWORD : SETTINGS_PASSWORD;
+  if(val === correct){
+    document.getElementById('pwCurrent').className = 'pw-field-inp ok';
+    document.getElementById('pwErr1').textContent = '';
+    goToStep(2);
+  } else {
+    document.getElementById('pwCurrent').className = 'pw-field-inp err';
+    document.getElementById('pwErr1').textContent = '❌ Password ትክክል አይደለም!';
+    document.getElementById('pwCurrent').value = '';
+    setTimeout(()=>{ document.getElementById('pwCurrent').className='pw-field-inp'; },700);
+  }
+};
+
+window.pwNext2 = function(){
+  const val = document.getElementById('pwNew').value;
+  if(!val || val.length < 3){
+    document.getElementById('pwNew').className = 'pw-field-inp err';
+    document.getElementById('pwErr2').textContent = '❌ ቢያንስ 3 characters ያስፈልጋል!';
+    setTimeout(()=>{ document.getElementById('pwNew').className='pw-field-inp'; },700);
+    return;
+  }
+  document.getElementById('pwNew').className = 'pw-field-inp ok';
+  document.getElementById('pwErr2').textContent = '';
+  goToStep(3);
+};
+
+window.pwSave = async function(){
+  const newPw = document.getElementById('pwNew').value;
+  const confirm = document.getElementById('pwConfirm').value;
+  if(newPw !== confirm){
+    document.getElementById('pwConfirm').className = 'pw-field-inp err';
+    document.getElementById('pwErr3').textContent = '❌ Password አይመሳሰልም!';
+    document.getElementById('pwConfirm').value = '';
+    setTimeout(()=>{ document.getElementById('pwConfirm').className='pw-field-inp'; },700);
+    return;
+  }
+  document.getElementById('pwConfirm').className = 'pw-field-inp ok';
+  document.getElementById('pwErr3').textContent = '';
+  if(pwChangeTarget === 'login'){
+    await fetch(SERVER+'/save-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({loginPassword:newPw,settingsPassword:SETTINGS_PASSWORD})});
+    ADMIN_PASSWORD = newPw;
+    sessionStorage.setItem('adminAuth','1');
+  } else {
+    await fetch(SERVER+'/save-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({loginPassword:ADMIN_PASSWORD,settingsPassword:newPw})});
+    SETTINGS_PASSWORD = newPw;
+  }
+  // Show success
+  [1,2,3].forEach(i => document.getElementById('pwStep'+i).style.display='none');
+  [1,2,3].forEach(i => {
+    const dot = document.getElementById('stepDot'+i);
+    dot.className='pw-step-dot done';
+  });
+  document.getElementById('pwSuccess').style.display = 'block';
+};
+
+window.resetPwFlow = function(){
+  pwChangeTarget = '';
+  document.getElementById('pwTypeSelect').style.display = 'block';
+  document.getElementById('pwStepFlow').style.display = 'none';
+  document.getElementById('pwSuccess').style.display = 'none';
+  document.getElementById('pwCurrent').value = '';
+  document.getElementById('pwNew').value = '';
+  document.getElementById('pwConfirm').value = '';
+  [1,2,3].forEach(i => {
+    document.getElementById('pwStep'+i).style.display = 'none';
+    document.getElementById('pwStep'+i).style.display = i===1?'block':'none';
+  });
+};
+
+// ══ HELPERS ══
+const ET_NAMES = [
+  'አበበ','ከበደ','ገረመው','ምህረት','ሰላም','ትዕግስት','ፍቅር','ሶፊያ','ናርዶስ','ሄለን',
+  'ዮናስ','ዳዊት','ሚካኤል','ሰሎሞን','ኤልያስ','ዘካሪያስ','ሕይወት','እሌኒ','ሳራ','ማርታ',
+  'ቴዎድሮስ','ይስሃቅ','ዮሐንስ','ጴጥሮስ','ሙሉጌታ','ጌታቸው','ፈቃዱ','ሲሳይ','ተካልኝ','ዘሪሁን',
+  'አዲሱ','ሃብቴ','ወልደሚካኤል','ብርሃኑ','ኃይሉ','ነጋሽ','ደምሴ','አሸናፊ','ሩፋኤል','ሃና',
+  'ሸዋ','ሉሉ','ቤቴልሄም','ሰብለ','አዜብ','ዲና','ሂሩት','ሜሮን','ቃልኪዳን','ዓይናለም',
+  'ፀሃይ','ብርቱካን','ትዕዛዝ','ዘውዲቱ','ሰናይ','ፍሬህይወት','ሙናዬ','ሊዲያ','ሮሜ','አስቴር',
+  'ሰምሃት','ጽዮን','ራሄል','አሜነ','ሬናት','ሃዋ','ሙሉ','ኢዮብ','ናቲ','ቤካ',
+  'አልሙ','ሸጋ','ደሴ','ሰለሞን','ጌና','ፀጋ','ሊቃ','ዘምዘም','ቡልቲ','ቱሉ',
+  'ወጋ','ቢቃ','ሻምበል','ጎሹ','ካሌ','ዘፍ','ጌጤ','ሸዋዬ','ጠጅ','ቁምሻ',
+  'ደስታ','ሙሴ','አዋሽ','ቤሬ','ዋቤ','ዓባይ','ጎጃም','ሐረር','ወሎ','ሽሬ'
+];
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function getLetter(n){
+  if(n<=15)return'B';if(n<=30)return'I';if(n<=45)return'N';if(n<=60)return'G';return'O';
+}
+
+function fmtSecs(s){
+  const m=Math.floor(s/60),sec=s%60;
+  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+
+
+// ══ UNIVERSAL SECTION TOGGLE ══
+window.toggleSection = function(bodyId, iconId){
+  const body = document.getElementById(bodyId);
+  const icon = document.getElementById(iconId);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(icon) icon.textContent = isOpen ? '▼' : '▲';
+};
+
+// ══ COLLAPSE SECTIONS ══
+let wdSectionOpen = true;
+window.toggleWithdrawSection = function(){
+  toggleSection('wdContent','wdCollapseIcon');
+  wdSectionOpen = document.getElementById('wdContent').style.display !== 'none';
+};
+
+let autoSectionOpen = false;
+document.getElementById('autoModeContent').style.display = 'none';
+window.toggleAutoSection = function(){
+  autoSectionOpen = !autoSectionOpen;
+  document.getElementById('autoModeContent').style.display = autoSectionOpen ? 'block' : 'none';
+  document.getElementById('autoCollapseIcon').textContent = autoSectionOpen ? '▲' : '▼';
+};
+
+// ══ STATE ══
+let autoCdMinutes = 1;
+let autoModeOn = false;
+let autoTimer = null;
+let activeBots = {};
+let roundNumber = 1;
+let calledNumbers = [];
+let gameIsLive = false;
+
+// ══ SMART BOT ON/OFF ══
+window.toggleSmartBot = async function(enabled){
+  const label = document.getElementById('smartBotLabel');
+  const slider = document.getElementById('smartBotSlider');
+  const thumb = document.getElementById('smartBotThumb');
+  if(enabled){
+    label.textContent = '🟢 Bot ON';
+    label.style.color = 'var(--green)';
+    slider.style.background = 'var(--purple)';
+    thumb.style.transform = 'translateX(32px)';
+    thumb.style.background = 'white';
+    await apiSet('smartBot/enabled', true);
+  } else {
+    label.textContent = '⭕ Bot OFF';
+    label.style.color = '';
+    slider.style.background = '#1e2a40';
+    thumb.style.transform = 'translateX(0)';
+    thumb.style.background = 'var(--muted)';
+    await apiSet('smartBot/enabled', false);
+  }
+};
+
+onVal('smartBot/enabled', val => {
+  const toggle = document.getElementById('smartBotToggle');
+  if(!toggle) return;
+  toggle.checked = val === true;
+  window.toggleSmartBot(val === true);
+});
+
+// ══ TAB SWITCHER ══
+window.switchTab = (tab) => {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tabBtn'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+  document.getElementById('tab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active');
+};
+
+// ══ AUTO MODE ══
+window.selectAutoCd = async (mins, el) => {
+  const confirmed = confirm(`⏱ ${mins} ደቂቃ ይቀመጥ?`);
+  if(!confirmed) return;
+  autoCdMinutes = mins;
+  document.querySelectorAll('.cd-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  await apiSet('autoMode/cdMinutes', mins);
+  const sl = document.getElementById('savedCdLabel');
+  if(sl) sl.textContent = mins;
+};
+window.startAutoMode = async () => {
+  console.log('🚀 START AUTO clicked');
+  
+  const activeBtn = document.querySelector('.cd-btn.active');
+  if(activeBtn){
+    autoCdMinutes = parseInt(activeBtn.id.replace('cdBtn','')) || autoCdMinutes;
+  }
+  console.log('⏱ cdMinutes:', autoCdMinutes);
+
+  const callSpeed = parseInt(document.getElementById('autoCallSpeed').value) || 4000;
+
+  // UI update first
+  autoModeOn = true;
+  document.getElementById('startAutoBtn').style.display = 'none';
+  document.getElementById('stopAutoBtn').style.display = 'flex';
+  document.getElementById('autoModeBox').classList.add('active-auto');
+  document.getElementById('autoModeTitle').textContent = '🟢 SERVER AUTO — RUNNING';
+  document.getElementById('autoModeTitle').classList.add('running');
+  document.getElementById('autoStatusRow').style.display = 'flex';
+  document.getElementById('autoPhaseVal').textContent = '⏳ Sending to server...';
+
+  try {
+    await apiSet('autoMode/cdMinutes', autoCdMinutes);
+    console.log('✅ cdMinutes set');
+    
+    await apiSet('autoMode/callSpeed', callSpeed);
+    console.log('✅ callSpeed set');
+    
+    await apiSet('autoMode/on', true);
+    console.log('✅ autoMode ON sent to server');
+    
+    // Server ን directly trigger እናድርግ
+    const resp = await fetch(SERVER + '/start-auto', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ cdMinutes: autoCdMinutes, callSpeed })
+    });
+    const data = await resp.json();
+    console.log('🖥 Server response:', data);
+    
+    if(data.ok){
+      document.getElementById('autoPhaseVal').textContent = '🚀 SERVER RUNNING';
+      document.getElementById('autoPhaseDesc').textContent = 'Railway server game ያስተዳድራል!';
+      const sl = document.getElementById('savedCdLabel');
+      if(sl) sl.textContent = autoCdMinutes;
+    } else {
+      console.error('❌ Server error:', data.msg);
+      document.getElementById('autoPhaseVal').textContent = '❌ Server error: ' + (data.msg||'Unknown');
+    }
+  } catch(e) {
+    console.error('❌ fetch error:', e);
+    document.getElementById('autoPhaseVal').textContent = '❌ Connection error';
+    document.getElementById('autoPhaseDesc').textContent = e.message;
+  }
+};
+window.stopAutoMode = async () => {
+  autoModeOn = false;
+  document.getElementById('startAutoBtn').style.display = 'flex';
+  document.getElementById('stopAutoBtn').style.display = 'none';
+  document.getElementById('autoModeBox').classList.remove('active-auto');
+  document.getElementById('autoModeTitle').textContent = '🤖 AUTO MODE';
+  document.getElementById('autoModeTitle').classList.remove('running');
+  document.getElementById('autoStatusRow').style.display = 'none';
+  await apiSet('autoMode/on', false);
+  await apiSet('game/countdown', {active:false});
+};
+
+onVal('autoMode/phase', phase => {
+  const labels = {'countdown':'⏱ COUNTDOWN','playing':'🎮 PLAYING','announcing':'🏆 ANNOUNCING','idle':'💤 IDLE'};
+  document.getElementById('autoPhaseVal').textContent = labels[phase] || '—';
+  document.getElementById('autoPhaseDesc').textContent = 'Railway server ያስተዳድራል';
+});
+
+onVal('game/countdown', val => {
+  clearInterval(autoTimer);
+  if(!val || !val.active || !val.startAt){
+    document.getElementById('autoCdVal').textContent = '—';
+    return;
+  }
+  function tick(){
+    const remain = Math.max(0, Math.floor((val.startAt - Date.now()) / 1000));
+    document.getElementById('autoCdVal').textContent = fmtSecs(remain);
+    if(remain <= 0) clearInterval(autoTimer);
+  }
+  tick();
+  autoTimer = setInterval(tick, 1000);
+});
+
+onVal('autoMode', val => {
+  const v = val?.cdMinutes || (typeof val === 'object' ? val?.cdMinutes : null);
+  if(!v) return;
+  autoCdMinutes = v;
+  const sl = document.getElementById('savedCdLabel');
+  if(sl) sl.textContent = v;
+  [1,2,3,4,5,6,7].forEach(i => {
+    const b = document.getElementById('cdBtn'+i);
+    if(b) b.classList.toggle('active', i === v);
+  });
+});
+
+onVal('autoMode', val => {
+  const isOn = val === true || (val && val.on === true);
+  if(isOn){
+    autoModeOn = true;
+    document.getElementById('startAutoBtn').style.display = 'none';
+    document.getElementById('stopAutoBtn').style.display = 'flex';
+    document.getElementById('autoModeBox').classList.add('active-auto');
+    document.getElementById('autoModeTitle').textContent = '🟢 SERVER AUTO — RUNNING';
+    document.getElementById('autoModeTitle').classList.add('running');
+    document.getElementById('autoStatusRow').style.display = 'flex';
+  } else {
+    autoModeOn = false;
+    document.getElementById('startAutoBtn').style.display = 'flex';
+    document.getElementById('stopAutoBtn').style.display = 'none';
+    document.getElementById('autoModeBox').classList.remove('active-auto');
+    document.getElementById('autoModeTitle').textContent = '🤖 AUTO MODE';
+    document.getElementById('autoModeTitle').classList.remove('running');
+    document.getElementById('autoStatusRow').style.display = 'none';
+    document.getElementById('autoCdVal').textContent = '—';
+  }
+});
+
+// ══ GAME STATUS ══
+onVal('game/status', data => {
+  if(!data) return;
+  gameIsLive = data.started || false;
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  if(data.started){
+    dot.classList.add('live');
+    txt.textContent = data.autoStarted ? '🟢 LIVE (Auto)' : '🟢 LIVE';
+    txt.classList.add('live');
+  } else {
+    dot.classList.remove('live');
+    txt.textContent = '⏹ WAITING';
+    txt.classList.remove('live');
+  }
+});
+
+onVal('game/bet', val => { document.getElementById('currentBet').textContent = val||0; });
+onVal('game/prize', val => {
+  const v = val||0;
+  document.getElementById('currentPrize').textContent = v;
+  document.getElementById('topPrize').textContent = v;
+});
+
+onVal('game/confirmedNumbers', data => {
+  data = data||{};
+  const cards = Object.keys(data).length;
+  const allUsers = Object.values(data);
+  const total = new Set(allUsers).size;
+  const realUsers = new Set(allUsers.filter(v => !String(v).startsWith('bot_')));
+  document.getElementById('topCards').textContent = cards;
+  document.getElementById('topPlayers').textContent = total;
+  document.getElementById('statPlayers').textContent = total;
+  document.getElementById('livePlayerCount').textContent = total;
+  document.getElementById('realCount').textContent = realUsers.size;
+  document.getElementById('botCountDisplay').textContent = total;
+  renderPlayers(data);
+});
+
+onVal('game/calledNumbers', data => {
+  calledNumbers = data ? Object.values(data) : [];
+  document.getElementById('statCalled').textContent = calledNumbers.length;
+  document.getElementById('statRemain').textContent = 75 - calledNumbers.length;
+  if(calledNumbers.length > 0){
+    const last = calledNumbers[calledNumbers.length-1];
+    const l = getLetter(last);
+    document.getElementById('bigNum').innerHTML = `<span class="letter">${l}</span>${last}`;
+    renderBalls(calledNumbers);
+  } else {
+    document.getElementById('bigNum').textContent = '—';
+    document.getElementById('ballsWrap').innerHTML = '<div class="empty">No numbers called yet</div>';
+  }
+});
+
+onVal('game/winners', data => {
+  if(!data) return;
+  renderWinnerList(Object.values(data));
+});
+
+onVal('autoMode', val => {
+  const round = val?.round || (typeof val === 'object' ? val?.round : null);
+  if(round){
+    roundNumber = round;
+    document.getElementById('roundNum').textContent = roundNumber;
+    document.getElementById('anTotalRounds').textContent = roundNumber;
+  }
+});
+
+function updateProfit(){
+  const c = Number(document.getElementById('anTotalCollected').textContent)||0;
+  const p = Number(document.getElementById('anTotalPaid').textContent)||0;
+  document.getElementById('anProfit').textContent = c - p;
+}
+
+onVal('analytics/totalCollected', val => { document.getElementById('anTotalCollected').textContent = val||0; updateProfit(); });
+onVal('analytics/totalPaidOut', val => { document.getElementById('anTotalPaid').textContent = val||0; updateProfit(); });
+onVal('analytics/totalDeposits', val => { document.getElementById('anTotalDeposits').textContent = val||0; });
+onVal('analytics/totalWithdrawals', val => { document.getElementById('anTotalWithdrawals').textContent = val||0; });
+onVal('analytics/avgPlayers', val => { document.getElementById('anAvgPlayers').textContent = (val||0).toFixed(1); });
+onVal('analytics/totalProfit', val => { document.getElementById('anGameProfit').textContent = val||0; });
+onVal('analytics/botWinProfit', val => { document.getElementById('anBotProfit').textContent = val||0; });
+
+onVal('analytics/history', data => {
+  const box = document.getElementById('dailyHistoryList');
+  if(!data){ box.innerHTML = '<div class="empty">No history yet</div>'; return; }
+  const entries = Object.entries(data).sort((a,b)=>b[0].localeCompare(a[0]));
+  box.innerHTML = '';
+  entries.forEach(([date, val]) => {
+    const d = document.createElement('div');
+    d.className = 'player-item';
+    d.innerHTML = `
+      <span style="color:var(--cyan);font-weight:700;">📅 ${date}</span>
+      <span style="color:var(--muted)">Rounds: <b style="color:var(--gold)">${val.rounds||0}</b></span>
+      <span style="color:var(--muted)">Profit: <b style="color:var(--green)">${val.profit||0}</b> ብር</span>
+    `;
+    box.appendChild(d);
+  });
+});
+
+onVal('bot/withdrawals', data => { renderWithdrawals(data||{}); });
+
+async function renderPlayers(data){
+  const box = document.getElementById('playersList');
+  const grouped = {};
+  for(let cardId in data){
+    const uid = data[cardId];
+    if(!grouped[uid]) grouped[uid] = {cards:[], uid};
+    grouped[uid].cards.push(cardId);
+  }
+  if(!Object.keys(grouped).length){
+    box.innerHTML = '<div class="empty">No players yet</div>';
+    return;
+  }
+  box.innerHTML = '';
+  const allState = await apiGet('') || {};
+  const users = allState.users || {};
+  for(let uid in grouped){
+    const g = grouped[uid];
+    const name = users[uid]?.display || uid;
+    const isBot = users[uid]?.is_bot === true;
+    const d = document.createElement('div');
+    d.className = 'player-item';
+    d.innerHTML = `
+      <span class="player-name">${isBot?'🎭':'👤'} ${name}
+        <span style="color:var(--muted);font-size:0.75rem;">(${uid})</span>
+      </span>
+      <span class="player-cards">🎟 ${g.cards.length} cards</span>
+    `;
+    if(!isBot){
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-red';
+      btn.style.cssText = 'padding:5px 12px;font-size:0.75rem;';
+      btn.textContent = 'Remove';
+      btn.onclick = () => removePlayer(uid);
+      d.appendChild(btn);
+    }
+    box.appendChild(d);
+  }
+}
+
+function renderWinnerList(winners){
+  const box = document.getElementById('winnerList');
+  box.innerHTML = '';
+  if(!winners.length){ box.innerHTML = '<div class="empty">No winners yet</div>'; return; }
+  winners.forEach(w => {
+    const d = document.createElement('div');
+    d.className = 'player-item';
+    d.innerHTML = `
+      <span class="player-name">🏆 ${w.displayName||w.user}</span>
+      <span style="color:var(--gold)">Card #${w.cardId}</span>
+      <span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1.2rem;">${w.prize||0} ብር</span>
+    `;
+    box.appendChild(d);
+  });
+}
+
+function renderWithdrawals(data){
+  const box = document.getElementById('withdrawalsList');
+  const badge = document.getElementById('withdrawCount');
+  const headerBadge = document.getElementById('withdrawCountHeader');
+  const pending = Object.entries(data).filter(([,v])=>v.status==='pending');
+  // inner badge (inside tab)
+  badge.textContent = pending.length;
+  badge.style.display = pending.length ? 'inline' : 'none';
+  // header badge — ALWAYS visible regardless of open/closed
+  if(headerBadge){
+    headerBadge.textContent = pending.length;
+    headerBadge.style.display = pending.length ? 'inline' : 'none';
+  }
+  if(!pending.length){ box.innerHTML = '<div class="empty">📭 Pending withdrawal የለም</div>'; return; }
+  pending.sort((a,b)=>{
+    const ta=a[1].time?new Date(a[1].time).getTime():0;
+    const tb=b[1].time?new Date(b[1].time).getTime():0;
+    return tb-ta;
+  });
+  box.innerHTML = '';
+  pending.forEach(([key,wd]) => {
+    const display = wd.display||wd.full_name||wd.username||wd.user_id;
+    const uid = wd.user_id||'';
+    const amount = wd.amount||0;
+    const method = wd.method||'—';
+    const account = wd.account||'—';
+    const timeStr = wd.time||'—';
+    const card = document.createElement('div');
+    card.className = 'wd-card';
+    card.innerHTML = `
+      <div class="wd-card-header">
+        <div style="width:48px;height:48px;background:#0a1020;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;border:2px solid #2a1a00">🏧</div>
+        <div class="wd-info">
+          <div class="wd-name">👤 ${display}</div>
+          <div class="wd-uid">ID: <code style="color:var(--cyan);font-size:0.8rem">${uid}</code></div>
+          <div class="wd-acct">
+            <span class="wd-method-badge">${method}</span>
+            <span class="wd-acct-num">📋 ${account}</span>
+          </div>
+          <div class="wd-time">🕐 ${timeStr}</div>
+        </div>
+        <div style="text-align:right"><div class="wd-amount">${amount} ብር</div></div>
+      </div>
+      <div class="wd-actions">
+        <button class="wd-paid" onclick="approveWithdrawal('${key}','${uid}',${amount})">✅ Paid</button>
+        <button class="wd-reject" onclick="rejectWithdrawal('${key}','${uid}',${amount})">❌ Reject</button>
+      </div>`;
+    box.appendChild(card);
+  });
+}
+
+window.approveWithdrawal = async (key, uid, amount) => {
+  if(!confirm(`✅ ${amount} ብር ተላከ?`)) return;
+  const resp = await fetch(SERVER+'/withdrawal-action', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ key, uid, amount, action:'approve' })
+  });
+  const data = await resp.json();
+  if(data.ok) alert('✅ Approved!');
+  else alert('❌ '+data.msg);
+};
+
+window.rejectWithdrawal = async (key, uid, amount) => {
+  if(!confirm(`❌ Reject & Refund ${amount} ብር?`)) return;
+  const resp = await fetch(SERVER+'/withdrawal-action', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ key, uid, amount, action:'reject' })
+  });
+  const data = await resp.json();
+  if(data.ok) alert('✅ Refunded!');
+  else alert('❌ '+data.msg);
+};
+
+// ══ ACCOUNT SETTINGS ══
+
+window.saveCBE = async function(){
+  const val = document.getElementById('cbeInput').value.trim();
+  if(!val || !val.match(/^\d{13}$/)){
+    alert('❌ CBE account 13 digit ያስፈልጋል!'); return;
+  }
+  await apiSet('bot/settings/cbe_account', val);
+  alert('✅ CBE Account ተቀይሯል!');
+  document.getElementById('cbeInput').value = '';
+};
+
+window.saveTelebirr = async function(){
+  const val = document.getElementById('telebirrInput').value.trim();
+  if(!val || !val.match(/^\d{10}$/)){
+    alert('❌ Telebirr 10 digit ያስፈልጋል!'); return;
+  }
+  await apiSet('bot/settings/telebirr_account', val);
+  alert('✅ Telebirr Account ተቀይሯል!');
+  document.getElementById('telebirrInput').value = '';
+};
+
+onVal('bot/settings/cbe_account', val => {
+  document.getElementById('currentCBE').textContent = val || '1000641057146';
+});
+onVal('bot/settings/telebirr_account', val => {
+  document.getElementById('currentTelebirr').textContent = val || '0952346729';
+});
+window.giveBalance = async () => {
+  const uid = document.getElementById('giveUserId').value.trim();
+  const amount = Number(document.getElementById('giveAmount').value);
+  if(!uid || !amount){ alert('Fill all!'); return; }
+  const resp = await fetch(SERVER+'/give-balance', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ uid, amount })
+  });
+  const data = await resp.json();
+  if(data.ok) alert(`✅ ${amount} ብር → ${uid}`);
+  else alert('❌ '+(data.msg||'Error'));
+  document.getElementById('giveUserId').value = '';
+  document.getElementById('giveAmount').value = '';
+};
+window.saveBet = async () => {
+  const bet = Number(document.getElementById('betInput').value);
+  const pct = Number(document.getElementById('percentInput').value)||80;
+  if(!bet){ alert('Enter bet amount!'); return; }
+  await apiSet('game/bet', bet);
+  await apiSet('game/percent', pct);
+  alert(`✅ Saved! Bet: ${bet} ብር, Prize: ${pct}%`);
+};
+async function removePlayer(userId){
+  if(!confirm(`Remove ${userId}?`)) return;
+  const data = await apiGet('game/confirmedNumbers') || {};
+  for(let cardId in data){
+    if(String(data[cardId]) === String(userId)){
+      delete data[cardId];
+    }
+  }
+  await apiSet('game/confirmedNumbers', data);
+}
+
+window.showImg = (url) => {
+  document.getElementById('imgFull').src = url;
+  document.getElementById('imgModal').classList.add('open');
+};
+
+function getAvailableCards(data){
+  const taken = new Set(Object.keys(data).map(Number));
+  const avail = [];
+  for(let i=1;i<=100;i++) if(!taken.has(i)) avail.push(i);
+  return avail;
+}
+
+window.addBots = async () => {
+  const count = Math.max(1, parseInt(document.getElementById('botCountInput').value)||50);
+  const confirmedData = await apiGet('game/confirmedNumbers') || {};
+  const bet = (await apiGet('game/bet')) || 0;
+  const pct = ((await apiGet('game/percent')) || 80) / 100;
+  const avail = shuffle(getAvailableCards(confirmedData));
+  const availNames = shuffle([...ET_NAMES]);
+  if(!avail.length){ alert('❌ Cards exhausted!'); return; }
+  const botsToAdd = [];
+  for(let i=0; i<count && i<avail.length && i<availNames.length; i++){
+    const fakeBotId = String(7000000000 + Math.floor(Math.random() * 999999999));
+    botsToAdd.push({ cardId: avail[i], botId: fakeBotId, botName: availNames[i] });
+  }
+  let added = 0;
+  for(let i=0; i<botsToAdd.length; i++){
+    await new Promise(res => setTimeout(res, 800 + Math.random()*1200));
+    const { cardId, botId, botName } = botsToAdd[i];
+    await fetch(SERVER+'/give-balance', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ uid: botId, amount: 0 })
+    });
+    await apiSet('users/'+botId+'/display', botName);
+    await apiSet('users/'+botId+'/is_bot', true);
+    const allCards = await apiGet('confirmedNumbers') || {};
+    allCards[cardId] = botId;
+    await apiSet('game/confirmedNumbers', allCards);
+    activeBots[cardId] = { id: botId, name: botName };
+    added++;
+    const total = Object.keys(allCards).length;
+    if(bet > 0){
+      await apiSet('game/prize', Math.floor(bet * total * pct));
+      await apiSet('game/total', bet * total);
+    }
+    renderBotGrid();
+  }
+  alert(`✅ ${added} bots added!`);
+};
+
+window.removeBots = async () => {
+  if(!confirm('Remove all bots?')) return;
+  await fetch(SERVER+'/remove-bots', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:'{}'
+  });
+  const allCards = await apiGet('game/confirmedNumbers') || {};
+  for(let cardId in allCards){
+    if(String(allCards[cardId]).startsWith('7')){
+      delete allCards[cardId];
+    }
+  }
+  await apiSet('game/confirmedNumbers', allCards);
+  activeBots = {};
+  renderBotGrid();
+  const bet = (await apiGet('game/bet')) || 0;
+  const pct = ((await apiGet('game/percent')) || 80) / 100;
+  const total = Object.keys(allCards).length;
+  await apiSet('game/prize', Math.floor(bet * total * pct));
+  await apiSet('game/total', bet * total);
+  alert('✅ Removed!');
+};
+
+
+function renderBotGrid(){
+  const grid = document.getElementById('botGrid');
+  grid.innerHTML = '';
+  const entries = Object.entries(activeBots);
+  if(!entries.length){
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;grid-column:1/-1;padding:8px 0;">No bots</div>';
+    return;
+  }
+  entries.forEach(([cardId, bot]) => {
+    const name = typeof bot === 'object' ? bot.name : bot;
+    const d = document.createElement('div');
+    d.className = 'bot-item';
+    d.innerHTML = `<span class="bot-name">🎭 ${name}</span><span class="bot-card-num">Card #${cardId}</span>`;
+    grid.appendChild(d);
+  });
+}
+
+// ══ BOT WIN PERCENT ══
+window.toggleBotWin = async function(enabled){
+  const label = document.getElementById('botWinLabel');
+  const track = document.getElementById('botWinSliderTrack');
+  const thumb = document.getElementById('botWinThumb');
+  const content = document.getElementById('botWinContent');
+  if(enabled){
+    label.textContent = '🟢 Bot Win ON';
+    label.style.color = 'var(--gold)';
+    track.style.background = 'var(--gold2)';
+    thumb.style.transform = 'translateX(32px)';
+    thumb.style.background = 'white';
+    content.style.display = 'block';
+    const pct = parseInt(document.getElementById('botWinSlider').value) || 50;
+    await apiSet('autoMode/botWinPercent', pct);
+  } else {
+    label.textContent = '⭕ Bot Win OFF';
+    label.style.color = '';
+    track.style.background = '#1e2a40';
+    thumb.style.transform = 'translateX(0)';
+    thumb.style.background = 'var(--muted)';
+    content.style.display = 'none';
+    await apiSet('autoMode/botWinPercent', 0);
+  }
+};
+
+window.saveBotWinPercent = async function(){
+  const pct = parseInt(document.getElementById('botWinSlider').value) || 50;
+  await apiSet('autoMode/botWinPercent', pct);
+  alert(`✅ Bot Win Percent: ${pct}% saved!`);
+};
+
+onVal('autoMode/botWinPercent', val => {
+  val = val ?? 0;
+  const isOn = val > 0;
+  document.getElementById('botWinToggle').checked = isOn;
+  window.toggleBotWin(isOn);
+  if(isOn){
+    document.getElementById('botWinSlider').value = val;
+    document.getElementById('botWinVal').textContent = val + '%';
+  }
+});
+
+document.getElementById('botCountInput').oninput = function(){
+  document.getElementById('botSlider').value = Math.min(100, Math.max(1, parseInt(this.value)||1));
+};
+// ══ AGENT PANEL ══
+let withdrawAgentData = {};
+let agentsData = {};
+
+function fmtTimeAg(str){
+  if(!str) return '—';
+  try { return new Date(str).toLocaleString('am-ET',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+  catch { return str; }
+}
+
+function renderAgentAll(){
+  renderAgentOverall();
+  renderAgentPending();
+  renderAgents();
+}
+
+function renderAgentOverall(){
+  const now = Date.now();
+  const DAY = 24*60*60*1000;
+  const weekStart = now - 7*DAY;
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const all = Object.values(withdrawAgentData);
+  const approved = all.filter(v=>v.status==='approved'&&v.time&&new Date(v.time).getTime()>=weekStart);
+  const rejected = all.filter(v=>v.status==='rejected'&&v.time&&new Date(v.time).getTime()>=weekStart);
+  const todayApp = approved.filter(v=>new Date(v.time).getTime()>=todayStart.getTime());
+  document.getElementById('ovTotalAmt').textContent = approved.reduce((s,v)=>s+(v.amount||0),0).toLocaleString()+' ብር';
+  document.getElementById('ovTotalCnt').textContent = approved.length+' ጊዜ';
+  document.getElementById('ovTodayAmt').textContent = todayApp.reduce((s,v)=>s+(v.amount||0),0).toLocaleString()+' ብር';
+  document.getElementById('ovTodayCnt').textContent = todayApp.length+' ጊዜ';
+  document.getElementById('ovRejAmt').textContent = rejected.reduce((s,v)=>s+(v.amount||0),0).toLocaleString()+' ብር';
+  document.getElementById('ovRejCnt').textContent = rejected.length+' ጊዜ';
+}
+
+function renderAgentPending(){
+  const box = document.getElementById('agentPendingList');
+  if(!box) return;
+  const badge = document.getElementById('agentPendingBadge');
+  const pending = Object.entries(withdrawAgentData)
+    .filter(([,v])=>v.status==='pending'||v.status==='accepted');
+  const pendingOnly = pending.filter(([,v])=>v.status==='pending');
+  if(badge){
+    badge.textContent = pendingOnly.length;
+    badge.style.display = pendingOnly.length ? 'inline' : 'none';
+  }
+  if(!pending.length){
+    box.innerHTML = '<div class="empty">📭 Pending withdrawal የለም</div>';
+    return;
+  }
+  pending.sort((a,b)=>(b[1].time?new Date(b[1].time).getTime():0)-(a[1].time?new Date(a[1].time).getTime():0));
+  box.innerHTML = pending.map(([,v])=>`
+    <div style="background:#0a0f1c;border:1px solid ${v.status==='accepted'?'rgba(251,146,60,0.3)':'var(--border)'};border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:120px;">
+        <div style="font-weight:700;font-size:0.9rem;">${v.display||v.full_name||v.username||v.user_id||'—'}</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">ID: ${v.user_id||'—'}</div>
+        <div style="font-size:0.75rem;color:var(--cyan);margin-top:3px;">${v.method||'BANK'} · ${v.account||'—'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);">${(v.amount||0).toLocaleString()} ብር</div>
+        <div style="font-size:0.65rem;color:${v.status==='accepted'?'#fb923c':'var(--muted)'};">
+          ${v.status==='accepted'?`🔒 ${v.acceptedBy}`:'⏳ PENDING'}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderAgents(){
+  const box = document.getElementById('agentsList');
+  if(!box) return;
+  const agents = Object.keys(agentsData);
+  if(!agents.length){
+    box.innerHTML = '<div class="empty">🤖 Agent የለም</div>';
+    return;
+  }
+  const now = Date.now();
+  const DAY = 24*60*60*1000;
+  const weekStart = now - 7*DAY;
+  const agentStats = {};
+  agents.forEach(name => {
+    const items = Object.values(withdrawAgentData).filter(v=>v.acceptedBy===name);
+    const weekApp = items.filter(v=>v.status==='approved'&&v.time&&new Date(v.time).getTime()>=weekStart);
+    const weekRej = items.filter(v=>v.status==='rejected'&&v.time&&new Date(v.time).getTime()>=weekStart);
+    agentStats[name] = {
+      paidAmt: weekApp.reduce((s,v)=>s+(v.amount||0),0),
+      paidCnt: weekApp.length,
+      rejCnt: weekRej.length,
+      history: items.filter(v=>(v.status==='approved'||v.status==='rejected')&&v.time&&new Date(v.time).getTime()>=weekStart)
+        .sort((a,b)=>new Date(b.time)-new Date(a.time))
+    };
+  });
+  const openSet = new Set();
+  agents.forEach(name=>{
+    if(document.getElementById(`ag-detail-${name}`)?.classList.contains('open')) openSet.add(name);
+  });
+  box.innerHTML = '';
+  agents.forEach(name => {
+    const s = agentStats[name];
+    const idNum = agentsData[name]?.id_number || '—';
+    const days = [];
+    for(let i=6;i>=0;i--){
+      const d=new Date(now-i*DAY); d.setHours(0,0,0,0);
+      const next=new Date(d.getTime()+DAY);
+      const label=d.toLocaleDateString('am-ET',{month:'short',day:'numeric'});
+      const dayItems=Object.values(withdrawAgentData).filter(v=>
+        v.acceptedBy===name&&v.status==='approved'&&v.time&&
+        new Date(v.time).getTime()>=d.getTime()&&new Date(v.time).getTime()<next.getTime()
+      );
+      days.push({label,sum:dayItems.reduce((s,v)=>s+(v.amount||0),0),count:dayItems.length});
+    }
+    const maxSum = Math.max(...days.map(d=>d.sum),1);
+    const card = document.createElement('div');
+    card.className = 'agent-card-ag';
+    card.innerHTML = `
+      <div class="agent-head-ag" onclick="toggleAgentDetail('${name}')">
+        <div class="agent-avatar-ag">🤖</div>
+        <div style="flex:1;">
+          <div class="agent-name-ag">${name}</div>
+          <div style="font-size:0.65rem;color:var(--muted);">ID: ${idNum}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="a-stat-ag amt">💰 ${s.paidAmt.toLocaleString()} ብር</span>
+          <span class="a-stat-ag paid">✅ ${s.paidCnt}</span>
+          <span class="a-stat-ag rej">✕ ${s.rejCnt}</span>
+        </div>
+        <button class="delete-btn-ag" onclick="event.stopPropagation();deleteAgent('${name}')">🗑 ሰርዝ</button>
+        <span class="ag-chevron ${openSet.has(name)?'open':''}" id="ag-chev-${name}">▶</span>
+      </div>
+      <div class="agent-detail-ag ${openSet.has(name)?'open':''}" id="ag-detail-${name}">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+          <div style="font-size:0.6rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">📅 በቀን Breakdown</div>
+          ${days.map(d=>`
+            <div class="ag-day-row">
+              <div class="ag-day-label">${d.label}</div>
+              <div class="ag-day-track"><div class="ag-day-fill" style="width:${Math.round(d.sum/maxSum*100)}%;"></div></div>
+              <div class="ag-day-val">${d.sum>0?d.sum.toLocaleString()+' ብር':'<span style="color:#2a2a40">—</span>'} ${d.count>0?`<span style="color:var(--muted)">(${d.count})</span>`:''}</div>
+            </div>`).join('')}
+        </div>
+        <div style="padding:12px 20px 4px;">
+          <div style="font-size:0.6rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">📋 History (7 ቀን)</div>
+        </div>
+        ${s.history.length ? s.history.slice(0,20).map(v=>`
+          <div class="ag-hist-item">
+            <span style="font-weight:700;color:var(--text);">${v.display||v.user_id||'—'}</span>
+            <span style="color:var(--cyan);font-size:0.68rem;">${v.method||'BANK'} · ${v.account||'—'}</span>
+            <span style="color:var(--gold);">${(v.amount||0).toLocaleString()} ብር</span>
+            <span style="color:${v.status==='approved'?'var(--green)':'var(--red)'};">${v.status==='approved'?'✅ PAID':'✕ REJ'}</span>
+            <span style="color:var(--muted);font-size:0.62rem;">${fmtTimeAg(v.time)}</span>
+          </div>`).join('') :
+          '<div style="padding:16px;text-align:center;font-size:0.7rem;color:#2a2a40;">ምንም history የለም</div>'
+        }
+      </div>`;
+    box.appendChild(card);
+  });
+}
+
+window.toggleAgentDetail = function(name){
+  const detail = document.getElementById(`ag-detail-${name}`);
+  const chev = document.getElementById(`ag-chev-${name}`);
+  if(!detail) return;
+  if(detail.classList.contains('open')){
+    detail.classList.remove('open');
+    chev.classList.remove('open');
+  } else {
+    detail.classList.add('open');
+    chev.classList.add('open');
+  }
+};
+
+window.addAgent = async function(){
+  const name = document.getElementById('newAgentName').value.trim();
+  const idNum = document.getElementById('newAgentId').value.trim();
+  if(!name){ alert('❌ ስም ያስገቡ!'); return; }
+  if(!idNum){ alert('❌ ID Number ያስገቡ!'); return; }
+  const resp = await fetch(SERVER+'/add-agent', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, id_number: idNum })
+  });
+  const data = await resp.json();
+  if(data.ok){
+    document.getElementById('newAgentName').value = '';
+    document.getElementById('newAgentId').value = '';
+    alert(`✅ ${name} ተጨምሯል!`);
+  } else alert('❌ Error');
+};
+
+window.deleteAgent = async function(name){
+  if(!confirm(`"${name}" ን መሰረዝ ይፈልጋሉ?`)) return;
+  const resp = await fetch(SERVER+'/delete-agent', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name })
+  });
+  const data = await resp.json();
+  if(data.ok) alert(`🗑 ${name} ተሰርዟል!`);
+  else alert('❌ Error');
+};
+
+window.changeAgentPass = async function(){
+  const p = document.getElementById('newAgentPass').value.trim();
+  if(!p){ alert('❌ Password ያስገቡ!'); return; }
+  const resp = await fetch(SERVER+'/change-agent-pass', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ password: p })
+  });
+  const data = await resp.json();
+  if(data.ok){
+    document.getElementById('newAgentPass').value = '';
+    alert('✅ Agent Password ተቀየረ!');
+  } else alert('❌ Error');
+};
+
+setInterval(async () => {
+  const wd = await apiGet('bot/withdrawals');
+  withdrawAgentData = wd || {};
+  const ag = await fetch(SERVER+'/agents').then(r=>r.json());
+  agentsData = ag || {};
+  renderAgentAll();
+}, 4000);
+// ══ ENTER KEY for settings password modal ═
+onVal('autoMode', val => {
+  const v = val?.callSpeed || (typeof val === 'object' ? val?.callSpeed : null);
+  if(v){
+    const el = document.getElementById('autoCallSpeed');
+    if(el) el.value = v;
+  }
+});
+document.getElementById('autoCallSpeed').addEventListener('change', async function(){
+  await apiSet('autoMode/callSpeed', parseInt(this.value));
+});
+document.getElementById('settingsPwInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') window.checkSettingsPw();
+});
+// ══ PROMOTION PANEL ══
+let promoTarget = 'bot';
+let scheduleType = 'once';
+let intervalHours = 1;
+
+window.selectPanel = function(panel){
+  selectedPanel = panel;
+  if(panel === 'promotion'){
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('promotionContent').style.display = 'block';
+    loadPromoList();
+    return;
+  }
+  if(panelLockEnabled){
+    document.getElementById('panelSelectView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'block';
+    if(panel === 'bingo'){
+      document.getElementById('loginPanelTitle').textContent = 'BINGO';
+      document.getElementById('loginPanelSub').textContent = 'ADMIN PANEL';
+      document.getElementById('loginPanelIcon').textContent = '🎮';
+    } else {
+      document.getElementById('loginPanelTitle').textContent = 'AGENT';
+      document.getElementById('loginPanelSub').textContent = 'AGENT PANEL';
+      document.getElementById('loginPanelIcon').textContent = '🤖';
+    }
+    setTimeout(()=>document.getElementById('pwInput').focus(), 100);
+  } else {
+    document.getElementById('lockScreen').style.display = 'none';
+    sessionStorage.setItem('adminAuth', panel);
+    localStorage.setItem('adminAuth', panel);
+    if(panel === 'bingo') showBingoPanel();
+    else showAgentPanel();
+  }
+};
+
+window.backToPromoSelect = function(){
+  document.getElementById('promotionContent').style.display = 'none';
+  document.getElementById('lockScreen').style.display = 'flex';
+};
+
+window.setPromoTarget = function(target){
+  promoTarget = target;
+  if(target === 'bot'){
+    document.getElementById('targetBotBtn').style.background = 'var(--gold)';
+    document.getElementById('targetBotBtn').style.borderColor = 'var(--gold)';
+    document.getElementById('targetBotBtn').style.color = '#080c14';
+    document.getElementById('targetGroupBtn').style.background = 'transparent';
+    document.getElementById('targetGroupBtn').style.borderColor = 'var(--border)';
+    document.getElementById('targetGroupBtn').style.color = 'var(--muted)';
+    document.getElementById('groupIdRow').style.display = 'none';
+  } else {
+    document.getElementById('targetGroupBtn').style.background = 'var(--cyan)';
+    document.getElementById('targetGroupBtn').style.borderColor = 'var(--cyan)';
+    document.getElementById('targetGroupBtn').style.color = '#080c14';
+    document.getElementById('targetBotBtn').style.background = 'transparent';
+    document.getElementById('targetBotBtn').style.borderColor = 'var(--border)';
+    document.getElementById('targetBotBtn').style.color = 'var(--muted)';
+    document.getElementById('groupIdRow').style.display = 'block';
+  }
+};
+
+window.setScheduleType = function(type){
+  scheduleType = type;
+  if(type === 'once'){
+    document.getElementById('schedOneBtn').style.background = 'var(--cyan)';
+    document.getElementById('schedOneBtn').style.borderColor = 'var(--cyan)';
+    document.getElementById('schedOneBtn').style.color = '#080c14';
+    document.getElementById('schedRepeatBtn').style.background = 'transparent';
+    document.getElementById('schedRepeatBtn').style.borderColor = 'var(--border)';
+    document.getElementById('schedRepeatBtn').style.color = 'var(--muted)';
+    document.getElementById('onceDateRow').style.display = 'block';
+    document.getElementById('repeatRow').style.display = 'none';
+  } else {
+    document.getElementById('schedRepeatBtn').style.background = 'var(--cyan)';
+    document.getElementById('schedRepeatBtn').style.borderColor = 'var(--cyan)';
+    document.getElementById('schedRepeatBtn').style.color = '#080c14';
+    document.getElementById('schedOneBtn').style.background = 'transparent';
+    document.getElementById('schedOneBtn').style.borderColor = 'var(--border)';
+    document.getElementById('schedOneBtn').style.color = 'var(--muted)';
+    document.getElementById('onceDateRow').style.display = 'none';
+    document.getElementById('repeatRow').style.display = 'block';
+  }
+};
+
+let intervalUnit = 'min';
+
+window.setUnit = function(unit, el){
+  intervalUnit = unit;
+  document.querySelectorAll('.interval-btn').forEach(b=>{
+    b.classList.remove('active');
+    b.style.background = '#0a0f1c';
+    b.style.color = 'var(--muted)';
+    b.style.borderColor = 'var(--border)';
+  });
+  el.classList.add('active');
+  el.style.background = 'var(--cyan)';
+  el.style.color = '#080c14';
+  el.style.borderColor = 'var(--cyan)';
+  updateIntervalLabel();
+};
+
+window.updateIntervalLabel = function(){
+  const val = parseInt(document.getElementById('intervalInput').value) || 1;
+  const label = intervalUnit === 'min' ? val+' ደቂቃ' : val+' ሰዓት';
+  document.getElementById('selectedIntervalLabel').textContent = label;
+};
+window.startIntervalPromotion = async function(){
+  const text = document.getElementById('promoText').value.trim();
+  const file = document.getElementById('promoPhotoFile').files[0];
+  const groupId = document.getElementById('promoGroupId').value.trim();
+  
+  if(!text && !file){ alert('❌ Message ወይም Photo ያስፈልጋል!'); return; }
+  if(promoTarget === 'group' && !groupId){ alert('❌ Group ID ያስፈልጋል!'); return; }
+  
+  const val = parseInt(document.getElementById('intervalInput').value) || 1;
+  const intervalMs = intervalUnit === 'min' ? val * 60 * 1000 : val * 60 * 60 * 1000;
+  
+  if(!confirm(`🔁 በየ ${val} ${intervalUnit === 'min' ? 'ደቂቃ' : 'ሰዓት'} ይላካል — ይጀምር?`)) return;
+
+  try {
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('targetType', promoTarget);
+    formData.append('groupId', groupId);
+    formData.append('intervalMs', intervalMs);
+    if(file) formData.append('photo', file);
+    
+    const resp = await fetch('https://admin-panel-production-b31a.up.railway.app/create-interval-promotion', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await resp.json();
+    
+    if(data.ok){
+      alert(`✅ Interval promotion ጀምሯል!`);
+      document.getElementById('promoText').value = '';
+      document.getElementById('promoPhotoFile').value = '';
+      document.getElementById('promoPhotoPreview').style.display = 'none';
+      loadPromoList();
+    } else {
+      alert(data.msg);
+    }
+  } catch(e) {
+    alert('❌ Error: ' + e.message);
+  }
+};
+
+window.stopIntervalPromotion = async function(){
+  if(!confirm('⏹ Promotion ማቆም ይፈልጋሉ?')) return;
+  const items = await fetch(SERVER+'/promotions-list').then(r=>r.json()).catch(()=>[]);
+  for(let p of items){
+    await fetch(SERVER+'/delete-promotion', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id: p.id })
+    });
+  }
+  alert('✅ Promotion ቆሟል!');
+  loadPromoList();
+};
+
+window.deletePromo = async function(id){
+  if(!confirm('Promotion ይሰረዝ?')) return;
+  await fetch(SERVER+'/delete-promotion', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id })
+  });
+  loadPromoList();
+  alert('✅ Deleted!');
+};
+
+async function loadPromoList(){
+  const box = document.getElementById('promoList');
+  const statusBox = document.getElementById('activePromoStatus');
+  if(!box) return;
+  const items = await fetch(SERVER+'/promotions-list').then(r=>r.json()).catch(()=>[]);
+
+  if(!items.length){
+    box.innerHTML = '<div class="empty">ምንም active promotion የለም</div>';
+    if(statusBox) statusBox.style.display = 'none';
+    return;
+  }
+
+  const first = items[0];
+  if(statusBox){
+    statusBox.style.display = 'block';
+    document.getElementById('activePromoText').textContent = first.text ? first.text.substring(0,60)+'...' : '—';
+    const hrs = (first.interval_ms/3600000).toFixed(1);
+    document.getElementById('activePromoInterval').textContent = hrs+'h';
+    const nextIn = Math.max(0, Math.round((first.next_send_at - Date.now()) / 1000 / 60));
+    document.getElementById('activePromoNext').textContent = nextIn + ' ደቂቃ';
+  }
+
+  box.innerHTML = items.map(p => `
+    <div style="background:#0a0f1c;border:1px solid rgba(0,230,118,0.2);border-radius:12px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:700;font-size:0.9rem;">🔁 ${p.target_type==='group'?'👥 Group':'🤖 Bot Users'}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:3px;">${p.text?p.text.substring(0,40)+'...':'—'}</div>
+          <div style="font-size:0.7rem;color:var(--gold);margin-top:3px;">⏱ Every ${(p.interval_ms/3600000).toFixed(1)}h</div>
+          <div style="font-size:0.7rem;color:var(--cyan);margin-top:2px;">Next: ${Math.max(0,Math.round((p.next_send_at-Date.now())/1000/60))} ደቂቃ</div>
+        </div>
+        <button onclick="deletePromo(${p.id})"
+          style="background:transparent;border:1px solid var(--red);color:var(--red);border-radius:8px;padding:6px 12px;font-size:0.75rem;cursor:pointer;font-family:'Outfit',sans-serif;">
+          🗑 ሰርዝ
+        </button>
+      </div>
+    </div>`).join('');
+}
+window.sendNow = async function(){
+  const text = document.getElementById('promoText').value.trim();
+  const file = document.getElementById('promoPhotoFile').files[0];
+  const groupId = document.getElementById('promoGroupId').value.trim();
+  if(!text && !file){ alert('❌ Message ወይም Photo ያስፈልጋል!'); return; }
+  if(promoTarget === 'group' && !groupId){ alert('❌ Group ID ያስፈልጋል!'); return; }
+  if(!confirm('📢 አሁን ወዲያውኑ ይላካ?')) return;
+  try {
+    const formData = new FormData();
+    formData.append('text', text);
+    formData.append('targetType', promoTarget);
+    formData.append('groupId', groupId);
+    if(file) formData.append('photo', file);
+    const resp = await fetch('https://admin-panel-production-b31a.up.railway.app/send-promotion', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await resp.json();
+    alert(data.msg);
+    if(data.ok){
+      document.getElementById('promoText').value = '';
+      document.getElementById('promoPhotoFile').value = '';
+      document.getElementById('promoPhotoPreview').style.display = 'none';
+    }
+  } catch(e) {
+    alert('❌ Server error: ' + e.message);
+  }
+};
+</script>
+</body>
+</html>
+l
